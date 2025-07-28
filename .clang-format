@@ -32,6 +32,7 @@ AlwaysBreakBeforeMultilineStrings: false
 AlwaysBreakTemplateDeclarations: false
 BinPackArguments: true
 BinPackParameters: false
+AllowAllArgumentsOnNextLine: true
 BraceWrapping:
   AfterClass: false
   AfterControlStatement: false
@@ -782,7 +783,7 @@ PenaltyBreakComment: 10
 PenaltyBreakFirstLessLess: 0
 PenaltyBreakString: 10
 PenaltyExcessCharacter: 100
-PenaltyReturnTypeOnItsOwnLine: 60
+PenaltyReturnTypeOnItsOwnLine: 1000
 
 PointerAlignment: Right
 ReflowComments: false
