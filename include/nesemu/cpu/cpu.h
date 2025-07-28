@@ -6,6 +6,7 @@
 #ifndef __NESEMU_CPU_H__
 #define __NESEMU_CPU_H__
 
+#include "nesemu/cpu/status.h"
 #include "nesemu/util/error.h"
 #include "nesemu/memory/memory.h"
 
@@ -33,9 +34,9 @@
 struct nes_cpu_t {
 	uint16_t pc; /**< Program Counter */
 	uint8_t sp; /**< Stack Pointer */
-	uint8_t acc; /**< Accumulator */
-	uint8_t irx; /**< Index Register X */
-	uint8_t iry; /**< Index Register Y */
+	uint8_t a; /**< Accumulator */
+	uint8_t x; /**< Index Register X */
+	uint8_t y; /**< Index Register Y */
 	uint8_t status; /**< Processor Status */
 };
 
@@ -61,5 +62,29 @@ nesemu_error_t nes_cpu_reset(struct nes_cpu_t *self);
  */
 nesemu_error_t
 nes_cpu_next(struct nes_cpu_t *self, nes_memory_t mem, int *cycles);
+
+/**
+ * Fetch the next word from memory at $pc and increment $pc
+ */
+static inline uint8_t nes_cpu_fetch(struct nes_cpu_t *self, nes_memory_t mem)
+{
+    return mem[self->pc++];
+}
+
+/**
+ * Set CPU status register given a bit mask
+ */
+static inline void nes_cpu_status_mask_set(struct nes_cpu_t *self, uint8_t mask)
+{
+    self->status = NESEMU_CPU_STATUS_SET_MASK(self->status, mask);
+}
+
+/**
+ * Remove CPU status flags given a bit mask
+ */
+static inline void nes_cpu_status_mask_unset(struct nes_cpu_t *self, uint8_t mask)
+{
+    self->status = NESEMU_CPU_STATUS_UNSET_MASK(self->status, mask);
+}
 
 #endif

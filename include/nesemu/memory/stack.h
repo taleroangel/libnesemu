@@ -17,6 +17,12 @@
 #define NESEMU_STACK_BASE_ADDR 0x0100
 
 /**
+ * Transform a stack address into a raw memory address by adding the base
+ * address to the given value
+ */
+#define NESEMU_STACK_GET_ADDR(addr) (uint8_t)(NESEMU_STACK_BASE_ADDR + (uint16_t)addr)
+
+/**
  * Max stack size in memory
  */
 #define NESEMU_STACK_SIZE 0xFF

@@ -29,7 +29,9 @@ nesemu_error_t nes_mem_w16(nes_memory_t mem, uint16_t addr, uint16_t data)
 		return NESEMU_RETURN_MEMORY_INVALILD_ADDR;
 	}
 #endif
+    // LSB
 	mem[addr] = (uint8_t)((data & 0xFF00) >> 8);
+    // MSB
 	mem[addr + 1] = (uint8_t)(data & 0x00FF);
 	return NESEMU_RETURN_SUCCESS;
 }
@@ -44,9 +46,9 @@ nesemu_error_t nes_mem_r16(nes_memory_t mem, uint16_t addr, uint16_t *result)
 		return NESEMU_RETURN_MEMORY_INVALILD_ADDR;
 	}
 #endif
-
+    // LSB
 	*result = mem[addr];
-	*result <<= 8;
-	*result |= mem[addr + 1];
+    // MSB 
+	*result |= (uint16_t)mem[addr + 1] << 8;
 	return NESEMU_RETURN_SUCCESS;
 }
