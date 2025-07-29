@@ -14,6 +14,23 @@
 extern const uint8_t nes_cpu_op_cycles[256];
 
 /**
+ * CPU addressing modes
+ */
+enum nes_cpu_addressing_mode_t {
+    NESEMU_ADDRESSING_UNSPECIFIED = 0,
+    NESEMU_ADDRESSING_IMMEDIATE,
+	NESEMU_ADDRESSING_ZERO_PAGE,
+	NESEMU_ADDRESSING_ZERO_PAGE_X,
+	NESEMU_ADDRESSING_ZERO_PAGE_Y,
+	NESEMU_ADDRESSING_ABSOLUTE,
+	NESEMU_ADDRESSING_ABSOLUTE_X,
+	NESEMU_ADDRESSING_ABSOLUTE_Y,
+	NESEMU_ADDRESSING_INDIRECT,
+	NESEMU_ADDRESSING_INDIRECT_X,
+	NESEMU_ADDRESSING_INDIRECT_Y,
+};
+
+/**
  * CPU instructions with their opcodes.
  *
  * Operations have suffixes that specify the addressing mode
