@@ -48,6 +48,6 @@ enum cpu_status_t {
  * Returns the result of removing flags from the mask from status
  */
 #define NESEMU_CPU_STATUS_UNSET_MASK(status, mask) \
-    (uint8_t)status ^ (uint8_t)mask
+    (uint8_t)status | ~(uint8_t)mask
 
 #endif
