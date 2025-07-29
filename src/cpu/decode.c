@@ -1,6 +1,8 @@
 /**
  * This file contains definitions for functions in 'cpu.h'
  * Contains code required to decode CPU instructions
+ *
+ *
  */
 
 #include "nesemu/cpu/cpu.h"
@@ -9,12 +11,22 @@
 
 #include "nesemu/memory/memory.h"
 #include "nesemu/memory/paging.h"
+#include "nesemu/memory/stack.h"
 
 #include "nesemu/util/error.h"
 #include "nesemu/util/bits.h"
 
 #include <stddef.h>
 #include <stdbool.h>
+#include <stdint.h>
+
+/**
+ * Return error if not success
+ */
+#define RETURN_IF_ERROR(err)                \
+	if (err != NESEMU_RETURN_SUCCESS) { \
+		return err;                 \
+	}
 
 /* Private Functions */
 static inline nesemu_error_t _LDA(struct nes_cpu_t *self,
@@ -46,6 +58,7 @@ static inline nesemu_error_t _LDA(struct nes_cpu_t *self,
 		err = nes_mem_r8(
 			mem, NESEMU_ZEROPAGE_GET_ADDR(nes_cpu_fetch(self, mem)),
 			&self->a);
+		RETURN_IF_ERROR(err);
 		// Update status flags
 		nes_cpu_status_mask_set(self,
 					NESEMU_CPU_STATUS_MASK_NZ(self->a));
@@ -58,6 +71,7 @@ static inline nesemu_error_t _LDA(struct nes_cpu_t *self,
 				 NESEMU_ZEROPAGE_GET_ADDR(
 					 nes_cpu_fetch(self, mem) + self->x),
 				 &self->a);
+		RETURN_IF_ERROR(err);
 		// Update status flags
 		nes_cpu_status_mask_set(self,
 					NESEMU_CPU_STATUS_MASK_NZ(self->a));
@@ -68,6 +82,7 @@ static inline nesemu_error_t _LDA(struct nes_cpu_t *self,
 		// Load contents at memory address
 		lsb = nes_cpu_fetch(self, mem), msb = nes_cpu_fetch(self, mem);
 		err = nes_mem_r8(mem, NESEMU_UTIL_U16(msb, lsb), &self->a);
+		RETURN_IF_ERROR(err);
 		// Update status flags
 		nes_cpu_status_mask_set(self,
 					NESEMU_CPU_STATUS_MASK_NZ(self->a));
@@ -79,6 +94,7 @@ static inline nesemu_error_t _LDA(struct nes_cpu_t *self,
 		lsb = nes_cpu_fetch(self, mem), msb = nes_cpu_fetch(self, mem);
 		addr = NESEMU_UTIL_U16(msb, lsb) + self->x;
 		err = nes_mem_r8(mem, addr, &self->a);
+		RETURN_IF_ERROR(err);
 		// Update status flags
 		nes_cpu_status_mask_set(self,
 					NESEMU_CPU_STATUS_MASK_NZ(self->a));
@@ -94,6 +110,7 @@ static inline nesemu_error_t _LDA(struct nes_cpu_t *self,
 		lsb = nes_cpu_fetch(self, mem), msb = nes_cpu_fetch(self, mem);
 		addr = NESEMU_UTIL_U16(msb, lsb) + self->y;
 		err = nes_mem_r8(mem, addr, &self->a);
+		RETURN_IF_ERROR(err);
 		// Update status flags
 		nes_cpu_status_mask_set(self,
 					NESEMU_CPU_STATUS_MASK_NZ(self->a));
@@ -108,13 +125,12 @@ static inline nesemu_error_t _LDA(struct nes_cpu_t *self,
 		// Load the pointer address (always zero page) and add X
 		ptr = NESEMU_ZEROPAGE_GET_ADDR(nes_cpu_fetch(self, mem) +
 					       self->x);
-		// Contents in ptr address will be the actual address
+		// Contents in ptr will be used as the actual address
 		err = nes_mem_r16(mem, ptr, &addr);
-		if (err != NESEMU_RETURN_SUCCESS) {
-			return err;
-		}
+		RETURN_IF_ERROR(err);
 		// Read contents from the actual address into acc register
 		err = nes_mem_r8(mem, addr, &self->a);
+		RETURN_IF_ERROR(err);
 		// Update status flags
 		nes_cpu_status_mask_set(self,
 					NESEMU_CPU_STATUS_MASK_NZ(self->a));
@@ -124,15 +140,14 @@ static inline nesemu_error_t _LDA(struct nes_cpu_t *self,
 		// Load Accumulator, Indirect Y (Post-Indexed)
 		// Load the pointer address (always zero page)
 		ptr = NESEMU_ZEROPAGE_GET_ADDR(nes_cpu_fetch(self, mem));
-		// Contents in ptr address will be the actual address
+		// Contents in ptr will be used as the actual address
 		err = nes_mem_r16(mem, ptr, &addr);
-		if (err != NESEMU_RETURN_SUCCESS) {
-			return err;
-		}
+		RETURN_IF_ERROR(err);
 		// Add Y to the actual address
 		addr += self->y;
 		// Read contents from the actual address into acc register
 		err = nes_mem_r8(mem, addr, &self->a);
+		RETURN_IF_ERROR(err);
 		// Update status flags
 		nes_cpu_status_mask_set(self,
 					NESEMU_CPU_STATUS_MASK_NZ(self->a));
@@ -171,6 +186,7 @@ static inline nesemu_error_t _LDX(struct nes_cpu_t *self,
 		err = nes_mem_r8(
 			mem, NESEMU_ZEROPAGE_GET_ADDR(nes_cpu_fetch(self, mem)),
 			&self->x);
+		RETURN_IF_ERROR(err);
 		// Update status flags
 		nes_cpu_status_mask_set(self,
 					NESEMU_CPU_STATUS_MASK_NZ(self->x));
@@ -183,6 +199,7 @@ static inline nesemu_error_t _LDX(struct nes_cpu_t *self,
 				 NESEMU_ZEROPAGE_GET_ADDR(
 					 nes_cpu_fetch(self, mem) + self->y),
 				 &self->x);
+		RETURN_IF_ERROR(err);
 		// Update status flags
 		nes_cpu_status_mask_set(self,
 					NESEMU_CPU_STATUS_MASK_NZ(self->x));
@@ -193,6 +210,7 @@ static inline nesemu_error_t _LDX(struct nes_cpu_t *self,
 		// Load contents at memory address
 		lsb = nes_cpu_fetch(self, mem), msb = nes_cpu_fetch(self, mem);
 		err = nes_mem_r8(mem, NESEMU_UTIL_U16(msb, lsb), &self->x);
+		RETURN_IF_ERROR(err);
 		// Update status flags
 		nes_cpu_status_mask_set(self,
 					NESEMU_CPU_STATUS_MASK_NZ(self->x));
@@ -204,6 +222,7 @@ static inline nesemu_error_t _LDX(struct nes_cpu_t *self,
 		lsb = nes_cpu_fetch(self, mem), msb = nes_cpu_fetch(self, mem);
 		addr = NESEMU_UTIL_U16(msb, lsb) + self->y;
 		err = nes_mem_r8(mem, addr, &self->x);
+		RETURN_IF_ERROR(err);
 		// Update status flags
 		nes_cpu_status_mask_set(self,
 					NESEMU_CPU_STATUS_MASK_NZ(self->x));
@@ -249,6 +268,7 @@ static inline nesemu_error_t _LDY(struct nes_cpu_t *self,
 		err = nes_mem_r8(
 			mem, NESEMU_ZEROPAGE_GET_ADDR(nes_cpu_fetch(self, mem)),
 			&self->y);
+		RETURN_IF_ERROR(err);
 		// Update status flags
 		nes_cpu_status_mask_set(self,
 					NESEMU_CPU_STATUS_MASK_NZ(self->y));
@@ -261,6 +281,7 @@ static inline nesemu_error_t _LDY(struct nes_cpu_t *self,
 				 NESEMU_ZEROPAGE_GET_ADDR(
 					 nes_cpu_fetch(self, mem) + self->x),
 				 &self->y);
+		RETURN_IF_ERROR(err);
 		// Update status flags
 		nes_cpu_status_mask_set(self,
 					NESEMU_CPU_STATUS_MASK_NZ(self->y));
@@ -271,6 +292,7 @@ static inline nesemu_error_t _LDY(struct nes_cpu_t *self,
 		// Load contents at memory address
 		lsb = nes_cpu_fetch(self, mem), msb = nes_cpu_fetch(self, mem);
 		err = nes_mem_r8(mem, NESEMU_UTIL_U16(msb, lsb), &self->y);
+		RETURN_IF_ERROR(err);
 		// Update status flags
 		nes_cpu_status_mask_set(self,
 					NESEMU_CPU_STATUS_MASK_NZ(self->y));
@@ -282,6 +304,7 @@ static inline nesemu_error_t _LDY(struct nes_cpu_t *self,
 		lsb = nes_cpu_fetch(self, mem), msb = nes_cpu_fetch(self, mem);
 		addr = NESEMU_UTIL_U16(msb, lsb) + self->x;
 		err = nes_mem_r8(mem, addr, &self->y);
+		RETURN_IF_ERROR(err);
 		// Update status flags
 		nes_cpu_status_mask_set(self,
 					NESEMU_CPU_STATUS_MASK_NZ(self->y));
@@ -354,9 +377,7 @@ static inline nesemu_error_t _STA(struct nes_cpu_t *self,
 					       self->x);
 		// Contents in ptr address will be the actual address
 		err = nes_mem_r16(mem, ptr, &addr);
-		if (err != NESEMU_RETURN_SUCCESS) {
-			return err;
-		}
+		RETURN_IF_ERROR(err);
 		// Write $acc into actual address
 		err = nes_mem_w8(mem, addr, self->a);
 		break;
@@ -367,9 +388,7 @@ static inline nesemu_error_t _STA(struct nes_cpu_t *self,
 		ptr = NESEMU_ZEROPAGE_GET_ADDR(nes_cpu_fetch(self, mem));
 		// Contents in ptr address will be the actual address
 		err = nes_mem_r16(mem, ptr, &addr);
-		if (err != NESEMU_RETURN_SUCCESS) {
-			return err;
-		}
+		RETURN_IF_ERROR(err);
 		// Add Y to the actual address
 		addr += self->y;
 		// Write $acc into actual address
@@ -466,6 +485,660 @@ static inline nesemu_error_t _STY(struct nes_cpu_t *self,
 	return err;
 }
 
+static inline nesemu_error_t _TXX(struct nes_cpu_t *self,
+				  uint8_t opcode,
+				  nes_memory_t mem,
+				  int *cycles)
+{
+	// Error code
+	nesemu_error_t err = NESEMU_RETURN_SUCCESS;
+
+	switch (opcode) {
+	case TAX:
+		// Transfer Accumulator to Index X
+		self->x = self->a;
+		nes_cpu_status_mask_set(self,
+					NESEMU_CPU_STATUS_MASK_NZ(self->x));
+		break;
+
+	case TXA:
+		// Transfer X to A
+		self->a = self->x;
+		nes_cpu_status_mask_set(self,
+					NESEMU_CPU_STATUS_MASK_NZ(self->a));
+		break;
+
+	case TAY:
+		// Transfer A to Y
+		self->y = self->a;
+		nes_cpu_status_mask_set(self,
+					NESEMU_CPU_STATUS_MASK_NZ(self->y));
+		break;
+
+	case TYA:
+		// Transfer Y to A
+		self->a = self->y;
+		nes_cpu_status_mask_set(self,
+					NESEMU_CPU_STATUS_MASK_NZ(self->a));
+		break;
+
+	default:
+		return NESEMU_RETURN_CPU_UNSUPPORTED_INSTRUCTION;
+	}
+
+	return err;
+}
+
+static inline nesemu_error_t _PXX(struct nes_cpu_t *self,
+				  uint8_t opcode,
+				  nes_memory_t mem,
+				  int *cycles)
+{
+	// Error code
+	nesemu_error_t err = NESEMU_RETURN_SUCCESS;
+
+	// Placeholder
+	uint8_t p = 0;
+
+	switch (opcode) {
+	case TSX:
+		// Transfer $sp to $x
+		self->x = self->sp;
+		nes_cpu_status_mask_set(self,
+					NESEMU_CPU_STATUS_MASK_NZ(self->x));
+		break;
+
+	case TXS:
+		// Transfer $x to $sp
+		self->sp = self->x;
+		nes_cpu_status_mask_set(self,
+					NESEMU_CPU_STATUS_MASK_NZ(self->sp));
+		break;
+
+	case PHA:
+		// Push $a into stack
+		err = nes_stack_push(mem, &self->sp, self->a);
+		RETURN_IF_ERROR(err);
+		break;
+
+	case PLA:
+		// Pull stack into $a
+		err = nes_stack_pop(mem, &self->sp, &self->a);
+		nes_cpu_status_mask_set(self,
+					NESEMU_CPU_STATUS_MASK_NZ(self->sp));
+		RETURN_IF_ERROR(err);
+		break;
+
+	case PHP:
+		// Push processor status
+		err = nes_stack_push(mem, &self->sp,
+				     self->status | NESEMU_CPU_FLAGS_B);
+		RETURN_IF_ERROR(err);
+		break;
+
+	case PLP:
+		// Pull processor status
+		err = nes_stack_pop(mem, &self->sp, &p);
+		RETURN_IF_ERROR(err);
+		self->status = p & ~(NESEMU_CPU_FLAGS_B | NESEMU_CPU_FLAGS_1);
+		break;
+
+	default:
+		return NESEMU_RETURN_CPU_UNSUPPORTED_INSTRUCTION;
+	}
+
+	return err;
+}
+
+static inline nesemu_error_t _AND(struct nes_cpu_t *self,
+				  uint8_t opcode,
+				  nes_memory_t mem,
+				  int *cycles)
+{
+	// Error code
+	nesemu_error_t err = NESEMU_RETURN_SUCCESS;
+
+	// Placeholders for storing results
+	uint8_t lsb = 0, msb = 0, p = 0;
+
+	// Placeholder for a full address AND pointer for indirect mode
+	uint16_t addr = 0, ptr = 0;
+
+	switch (opcode) {
+	case AND_IM:
+		// Bitwise AND, Immediate
+		p = nes_cpu_fetch(self, mem);
+		break;
+
+	case AND_ZP:
+		// Bitwise AND, Zero Page
+		addr = NESEMU_ZEROPAGE_GET_ADDR(nes_cpu_fetch(self, mem));
+		err = nes_mem_r8(mem, addr, &p);
+		break;
+
+	case AND_ZX:
+		// Bitwise AND, Zero Page + X
+		addr = NESEMU_ZEROPAGE_GET_ADDR(nes_cpu_fetch(self, mem)) +
+		       self->x;
+		err = nes_mem_r8(mem, addr, &p);
+		break;
+
+	case AND_AB:
+		// Bitwise AND, Absolute
+		lsb = nes_cpu_fetch(self, mem), msb = nes_cpu_fetch(self, mem);
+		addr = NESEMU_UTIL_U16(msb, lsb);
+		err = nes_mem_r8(mem, addr, &p);
+		break;
+
+	case AND_AX:
+		// Bitwise AND, Absolute X
+		lsb = nes_cpu_fetch(self, mem), msb = nes_cpu_fetch(self, mem);
+		// Add x to address
+		addr = NESEMU_UTIL_U16(msb, lsb) + self->x;
+		err = nes_mem_r8(mem, addr, &p);
+		break;
+
+	case AND_AY:
+		// Bitwise AND, Absolute X
+		lsb = nes_cpu_fetch(self, mem), msb = nes_cpu_fetch(self, mem);
+		// Add y to address
+		addr = NESEMU_UTIL_U16(msb, lsb) + self->y;
+		err = nes_mem_r8(mem, addr, &p);
+		break;
+
+	case AND_IX:
+		// Bitwise AND, Indirect X (Pre-Indexed)
+		// Load the pointer address (zero page) AND add X
+		ptr = NESEMU_ZEROPAGE_GET_ADDR(nes_cpu_fetch(self, mem) +
+					       self->x);
+		// Contents in ptr will be used as the actual address
+		err = nes_mem_r16(mem, ptr, &addr);
+		RETURN_IF_ERROR(err);
+		// Read contents from the actual address
+		err = nes_mem_r8(mem, addr, &p);
+		break;
+
+	case AND_IY:
+		// Bitwise AND, Indirect Y (Pre-Indexed)
+		// Load the pointer address (zero page)
+		ptr = NESEMU_ZEROPAGE_GET_ADDR(nes_cpu_fetch(self, mem));
+		// Contents in ptr will be used as the actual address
+		err = nes_mem_r16(mem, ptr, &addr);
+		RETURN_IF_ERROR(err);
+		// Add Y to the actual address
+		addr += self->y;
+		// Read contents from the actual address
+		err = nes_mem_r8(mem, addr, &p);
+		break;
+
+	default:
+		return NESEMU_RETURN_CPU_UNSUPPORTED_INSTRUCTION;
+	}
+
+	// Use 'p' as the value to apply to $a
+	RETURN_IF_ERROR(err);
+	self->a &= p;
+	nes_cpu_status_mask_set(self, NESEMU_CPU_STATUS_MASK_NZ(self->a));
+
+	return err;
+}
+
+static inline nesemu_error_t _EOR(struct nes_cpu_t *self,
+				  uint8_t opcode,
+				  nes_memory_t mem,
+				  int *cycles)
+{
+	// Error code
+	nesemu_error_t err = NESEMU_RETURN_SUCCESS;
+
+	// Placeholders for storing results
+	uint8_t lsb = 0, msb = 0, p = 0;
+
+	// Placeholder for a full address EOR pointer for indirect mode
+	uint16_t addr = 0, ptr = 0;
+
+	switch (opcode) {
+	case EOR_IM:
+		// Bitwise EOR, Immediate
+		p = nes_cpu_fetch(self, mem);
+		break;
+
+	case EOR_ZP:
+		// Bitwise EOR, Zero Page
+		addr = NESEMU_ZEROPAGE_GET_ADDR(nes_cpu_fetch(self, mem));
+		err = nes_mem_r8(mem, addr, &p);
+		break;
+
+	case EOR_ZX:
+		// Bitwise EOR, Zero Page + X
+		addr = NESEMU_ZEROPAGE_GET_ADDR(nes_cpu_fetch(self, mem)) +
+		       self->x;
+		err = nes_mem_r8(mem, addr, &p);
+		break;
+
+	case EOR_AB:
+		// Bitwise EOR, Absolute
+		lsb = nes_cpu_fetch(self, mem), msb = nes_cpu_fetch(self, mem);
+		addr = NESEMU_UTIL_U16(msb, lsb);
+		err = nes_mem_r8(mem, addr, &p);
+		break;
+
+	case EOR_AX:
+		// Bitwise EOR, Absolute X
+		lsb = nes_cpu_fetch(self, mem), msb = nes_cpu_fetch(self, mem);
+		// Add x to address
+		addr = NESEMU_UTIL_U16(msb, lsb) + self->x;
+		err = nes_mem_r8(mem, addr, &p);
+		break;
+
+	case EOR_AY:
+		// Bitwise EOR, Absolute X
+		lsb = nes_cpu_fetch(self, mem), msb = nes_cpu_fetch(self, mem);
+		// Add y to address
+		addr = NESEMU_UTIL_U16(msb, lsb) + self->y;
+		err = nes_mem_r8(mem, addr, &p);
+		break;
+
+	case EOR_IX:
+		// Bitwise EOR, Indirect X (Pre-Indexed)
+		// Load the pointer address (zero page) EOR add X
+		ptr = NESEMU_ZEROPAGE_GET_ADDR(nes_cpu_fetch(self, mem) +
+					       self->x);
+		// Contents in ptr will be used as the actual address
+		err = nes_mem_r16(mem, ptr, &addr);
+		RETURN_IF_ERROR(err);
+		// Read contents from the actual address
+		err = nes_mem_r8(mem, addr, &p);
+		break;
+
+	case EOR_IY:
+		// Bitwise EOR, Indirect Y (Pre-Indexed)
+		// Load the pointer address (zero page)
+		ptr = NESEMU_ZEROPAGE_GET_ADDR(nes_cpu_fetch(self, mem));
+		// Contents in ptr will be used as the actual address
+		err = nes_mem_r16(mem, ptr, &addr);
+		RETURN_IF_ERROR(err);
+		// Add Y to the actual address
+		addr += self->y;
+		// Read contents from the actual address
+		err = nes_mem_r8(mem, addr, &p);
+		break;
+
+	default:
+		return NESEMU_RETURN_CPU_UNSUPPORTED_INSTRUCTION;
+	}
+
+	// Use 'p' as the value to apply to $a
+	RETURN_IF_ERROR(err);
+	self->a ^= p;
+	nes_cpu_status_mask_set(self, NESEMU_CPU_STATUS_MASK_NZ(self->a));
+
+	return err;
+}
+
+static inline nesemu_error_t _ORA(struct nes_cpu_t *self,
+				  uint8_t opcode,
+				  nes_memory_t mem,
+				  int *cycles)
+{
+	// Error code
+	nesemu_error_t err = NESEMU_RETURN_SUCCESS;
+
+	// Placeholders for storing results
+	uint8_t lsb = 0, msb = 0, p = 0;
+
+	// Placeholder for a full address ORA pointer for indirect mode
+	uint16_t addr = 0, ptr = 0;
+
+	switch (opcode) {
+	case ORA_IM:
+		// Bitwise ORA, Immediate
+		p = nes_cpu_fetch(self, mem);
+		break;
+
+	case ORA_ZP:
+		// Bitwise ORA, Zero Page
+		addr = NESEMU_ZEROPAGE_GET_ADDR(nes_cpu_fetch(self, mem));
+		err = nes_mem_r8(mem, addr, &p);
+		break;
+
+	case ORA_ZX:
+		// Bitwise ORA, Zero Page + X
+		addr = NESEMU_ZEROPAGE_GET_ADDR(nes_cpu_fetch(self, mem)) +
+		       self->x;
+		err = nes_mem_r8(mem, addr, &p);
+		break;
+
+	case ORA_AB:
+		// Bitwise ORA, Absolute
+		lsb = nes_cpu_fetch(self, mem), msb = nes_cpu_fetch(self, mem);
+		addr = NESEMU_UTIL_U16(msb, lsb);
+		err = nes_mem_r8(mem, addr, &p);
+		break;
+
+	case ORA_AX:
+		// Bitwise ORA, Absolute X
+		lsb = nes_cpu_fetch(self, mem), msb = nes_cpu_fetch(self, mem);
+		// Add x to address
+		addr = NESEMU_UTIL_U16(msb, lsb) + self->x;
+		err = nes_mem_r8(mem, addr, &p);
+		break;
+
+	case ORA_AY:
+		// Bitwise ORA, Absolute X
+		lsb = nes_cpu_fetch(self, mem), msb = nes_cpu_fetch(self, mem);
+		// Add y to address
+		addr = NESEMU_UTIL_U16(msb, lsb) + self->y;
+		err = nes_mem_r8(mem, addr, &p);
+		break;
+
+	case ORA_IX:
+		// Bitwise ORA, Indirect X (Pre-Indexed)
+		// Load the pointer address (zero page) ORA add X
+		ptr = NESEMU_ZEROPAGE_GET_ADDR(nes_cpu_fetch(self, mem) +
+					       self->x);
+		// Contents in ptr will be used as the actual address
+		err = nes_mem_r16(mem, ptr, &addr);
+		RETURN_IF_ERROR(err);
+		// Read contents from the actual address
+		err = nes_mem_r8(mem, addr, &p);
+		break;
+
+	case ORA_IY:
+		// Bitwise ORA, Indirect Y (Pre-Indexed)
+		// Load the pointer address (zero page)
+		ptr = NESEMU_ZEROPAGE_GET_ADDR(nes_cpu_fetch(self, mem));
+		// Contents in ptr will be used as the actual address
+		err = nes_mem_r16(mem, ptr, &addr);
+		RETURN_IF_ERROR(err);
+		// Add Y to the actual address
+		addr += self->y;
+		// Read contents from the actual address
+		err = nes_mem_r8(mem, addr, &p);
+		break;
+
+	default:
+		return NESEMU_RETURN_CPU_UNSUPPORTED_INSTRUCTION;
+	}
+
+	// Use 'p' as the value to apply to $a
+	RETURN_IF_ERROR(err);
+	self->a |= p;
+	nes_cpu_status_mask_set(self, NESEMU_CPU_STATUS_MASK_NZ(self->a));
+
+	return err;
+}
+
+static inline nesemu_error_t _BIT(struct nes_cpu_t *self,
+				  uint8_t opcode,
+				  nes_memory_t mem,
+				  int *cycles)
+{
+	// Error code
+	nesemu_error_t err = NESEMU_RETURN_SUCCESS;
+
+	// Placeholders for storing results
+	uint8_t lsb = 0, msb = 0, p = 0;
+
+	// Placeholder for a full address
+	uint16_t addr = 0;
+
+	switch (opcode) {
+	case BIT_ZP:
+		// Bitwise BIT, Zero Page
+		addr = NESEMU_ZEROPAGE_GET_ADDR(nes_cpu_fetch(self, mem));
+		err = nes_mem_r8(mem, addr, &p);
+		// This code only loads contents into <p>
+		// Logic is after the switch block
+		break;
+
+	case BIT_AB:
+		// Bitwise BIT, Absolute
+		lsb = nes_cpu_fetch(self, mem), msb = nes_cpu_fetch(self, mem);
+		addr = NESEMU_UTIL_U16(msb, lsb);
+		err = nes_mem_r8(mem, addr, &p);
+		// This code only loads contents into <p>
+		// Logic is after the switch block
+		break;
+
+	default:
+		return NESEMU_RETURN_CPU_UNSUPPORTED_INSTRUCTION;
+	}
+
+	// At this point, value <p> should be set
+	RETURN_IF_ERROR(err);
+
+	// Z if p is 0, V and N flags are the same as in p
+	self->status |= NESEMU_CPU_STATUS_MASK_Z(p);
+	self->status |= (p & NESEMU_CPU_FLAGS_V);
+	self->status |= (p & NESEMU_CPU_FLAGS_N);
+
+	return err;
+}
+
+static inline nesemu_error_t _ADC(struct nes_cpu_t *self,
+				  uint8_t opcode,
+				  nes_memory_t mem,
+				  int *cycles)
+{
+	// Error code
+	nesemu_error_t err = NESEMU_RETURN_SUCCESS;
+
+	// Placeholders for storing results
+	uint8_t lsb = 0, msb = 0, p = 0;
+
+	// Placeholder for a full address ADC pointer for indirect mode
+	uint16_t addr = 0, ptr = 0;
+
+	switch (opcode) {
+	case ADC_IM:
+		// ADC, Immediate
+		p = nes_cpu_fetch(self, mem);
+		break;
+
+	case ADC_ZP:
+		// ADC, Zero Page
+		addr = NESEMU_ZEROPAGE_GET_ADDR(nes_cpu_fetch(self, mem));
+		err = nes_mem_r8(mem, addr, &p);
+		break;
+
+	case ADC_ZX:
+		// ADC, Zero Page + X
+		addr = NESEMU_ZEROPAGE_GET_ADDR(nes_cpu_fetch(self, mem)) +
+		       self->x;
+		err = nes_mem_r8(mem, addr, &p);
+		break;
+
+	case ADC_AB:
+		// ADC, Absolute
+		lsb = nes_cpu_fetch(self, mem), msb = nes_cpu_fetch(self, mem);
+		addr = NESEMU_UTIL_U16(msb, lsb);
+		err = nes_mem_r8(mem, addr, &p);
+		break;
+
+	case ADC_AX:
+		// ADC, Absolute X
+		lsb = nes_cpu_fetch(self, mem), msb = nes_cpu_fetch(self, mem);
+		// Add x to address
+		addr = NESEMU_UTIL_U16(msb, lsb) + self->x;
+		err = nes_mem_r8(mem, addr, &p);
+		break;
+
+	case ADC_AY:
+		// ADC, Absolute X
+		lsb = nes_cpu_fetch(self, mem), msb = nes_cpu_fetch(self, mem);
+		// Add y to address
+		addr = NESEMU_UTIL_U16(msb, lsb) + self->y;
+		err = nes_mem_r8(mem, addr, &p);
+		break;
+
+	case ADC_IX:
+		// ADC, Indirect X (Pre-Indexed)
+		// Load the pointer address (zero page) ADC add X
+		ptr = NESEMU_ZEROPAGE_GET_ADDR(nes_cpu_fetch(self, mem) +
+					       self->x);
+		// Contents in ptr will be used as the actual address
+		err = nes_mem_r16(mem, ptr, &addr);
+		RETURN_IF_ERROR(err);
+		// Read contents from the actual address
+		err = nes_mem_r8(mem, addr, &p);
+		break;
+
+	case ADC_IY:
+		// ADC, Indirect Y (Pre-Indexed)
+		// Load the pointer address (zero page)
+		ptr = NESEMU_ZEROPAGE_GET_ADDR(nes_cpu_fetch(self, mem));
+		// Contents in ptr will be used as the actual address
+		err = nes_mem_r16(mem, ptr, &addr);
+		RETURN_IF_ERROR(err);
+		// Add Y to the actual address
+		addr += self->y;
+		// Read contents from the actual address
+		err = nes_mem_r8(mem, addr, &p);
+		break;
+
+	default:
+		return NESEMU_RETURN_CPU_UNSUPPORTED_INSTRUCTION;
+	}
+
+	// Use 'p' as the value to apply to $a
+	RETURN_IF_ERROR(err);
+	uint16_t result = self->a + p + (self->status & NESEMU_CPU_FLAGS_C);
+
+	// Clear carry
+	self->status =
+		NESEMU_CPU_STATUS_UNSET_MASK(self->status, NESEMU_CPU_FLAGS_C);
+
+	// Set status
+	nes_cpu_status_mask_set(self, NESEMU_CPU_STATUS_MASK_NZ(result));
+
+	// Set carry (result overflow)
+	if (result > UINT8_MAX) {
+		nes_cpu_status_mask_set(self, NESEMU_CPU_FLAGS_C);
+	}
+
+	// Overflow
+	if (((uint8_t)result ^ self->a) & ((uint8_t)result ^ p) &
+	    NESEMU_CPU_FLAGS_N) {
+		nes_cpu_status_mask_set(self, NESEMU_CPU_FLAGS_V);
+	}
+
+	// Set the value
+	self->a = (uint8_t)result;
+	return err;
+}
+
+static inline nesemu_error_t _SBC(struct nes_cpu_t *self,
+				  uint8_t opcode,
+				  nes_memory_t mem,
+				  int *cycles)
+{
+	// Error code
+	nesemu_error_t err = NESEMU_RETURN_SUCCESS;
+
+	// Placeholders for storing results
+	uint8_t lsb = 0, msb = 0, p = 0;
+
+	// Placeholder for a full address SBC pointer for indirect mode
+	uint16_t addr = 0, ptr = 0;
+
+	switch (opcode) {
+	case SBC_IM:
+		// SBC, Immediate
+		p = nes_cpu_fetch(self, mem);
+		break;
+
+	case SBC_ZP:
+		// SBC, Zero Page
+		addr = NESEMU_ZEROPAGE_GET_ADDR(nes_cpu_fetch(self, mem));
+		err = nes_mem_r8(mem, addr, &p);
+		break;
+
+	case SBC_ZX:
+		// SBC, Zero Page + X
+		addr = NESEMU_ZEROPAGE_GET_ADDR(nes_cpu_fetch(self, mem)) +
+		       self->x;
+		err = nes_mem_r8(mem, addr, &p);
+		break;
+
+	case SBC_AB:
+		// SBC, Absolute
+		lsb = nes_cpu_fetch(self, mem), msb = nes_cpu_fetch(self, mem);
+		addr = NESEMU_UTIL_U16(msb, lsb);
+		err = nes_mem_r8(mem, addr, &p);
+		break;
+
+	case SBC_AX:
+		// SBC, Absolute X
+		lsb = nes_cpu_fetch(self, mem), msb = nes_cpu_fetch(self, mem);
+		// Add x to address
+		addr = NESEMU_UTIL_U16(msb, lsb) + self->x;
+		err = nes_mem_r8(mem, addr, &p);
+		break;
+
+	case SBC_AY:
+		// SBC, Absolute X
+		lsb = nes_cpu_fetch(self, mem), msb = nes_cpu_fetch(self, mem);
+		// Add y to address
+		addr = NESEMU_UTIL_U16(msb, lsb) + self->y;
+		err = nes_mem_r8(mem, addr, &p);
+		break;
+
+	case SBC_IX:
+		// SBC, Indirect X (Pre-Indexed)
+		// Load the pointer address (zero page) SBC add X
+		ptr = NESEMU_ZEROPAGE_GET_ADDR(nes_cpu_fetch(self, mem) +
+					       self->x);
+		// Contents in ptr will be used as the actual address
+		err = nes_mem_r16(mem, ptr, &addr);
+		RETURN_IF_ERROR(err);
+		// Read contents from the actual address
+		err = nes_mem_r8(mem, addr, &p);
+		break;
+
+	case SBC_IY:
+		// SBC, Indirect Y (Pre-Indexed)
+		// Load the pointer address (zero page)
+		ptr = NESEMU_ZEROPAGE_GET_ADDR(nes_cpu_fetch(self, mem));
+		// Contents in ptr will be used as the actual address
+		err = nes_mem_r16(mem, ptr, &addr);
+		RETURN_IF_ERROR(err);
+		// Add Y to the actual address
+		addr += self->y;
+		// Read contents from the actual address
+		err = nes_mem_r8(mem, addr, &p);
+		break;
+
+	default:
+		return NESEMU_RETURN_CPU_UNSUPPORTED_INSTRUCTION;
+	}
+
+	// Use 'p' as the value to apply to $a
+	RETURN_IF_ERROR(err);
+	uint16_t result = self->a - p - ~(self->status & NESEMU_CPU_FLAGS_C);
+
+	// Clear carry
+	self->status =
+		NESEMU_CPU_STATUS_UNSET_MASK(self->status, NESEMU_CPU_FLAGS_C);
+
+	// Set status
+	nes_cpu_status_mask_set(self, NESEMU_CPU_STATUS_MASK_NZ(result));
+
+	// Set carry (result underflow < 0)
+	if (result > UINT8_MAX) {
+		nes_cpu_status_mask_set(self, NESEMU_CPU_FLAGS_C);
+	}
+
+	// Overflow
+	if (((uint8_t)result ^ self->a) & ((uint8_t)result ^ ~p) & NESEMU_CPU_FLAGS_N) {
+		nes_cpu_status_mask_set(self, NESEMU_CPU_FLAGS_V);
+	}
+
+	// Set the value
+	self->a = (uint8_t)result;
+	return err;
+}
+
 /* Public Functions */
 
 nesemu_error_t nes_cpu_next(struct nes_cpu_t *self,
@@ -494,7 +1167,7 @@ nesemu_error_t nes_cpu_next(struct nes_cpu_t *self,
 
 	// Decode the instruction
 	switch (opcode) {
-	/* Load/Store Operations */
+		/* Load/Store Operations */
 	case LDA_IM:
 	case LDA_ZP:
 	case LDA_ZX:
@@ -549,6 +1222,8 @@ nesemu_error_t nes_cpu_next(struct nes_cpu_t *self,
 	case TXA:
 	case TAY:
 	case TYA:
+		err = _TXX(self, opcode, mem, cycles);
+		break;
 
 		/* Stack operations */
 	case TSX:
@@ -557,6 +1232,8 @@ nesemu_error_t nes_cpu_next(struct nes_cpu_t *self,
 	case PLA:
 	case PHP:
 	case PLP:
+		err = _PXX(self, opcode, mem, cycles);
+		break;
 
 		/* Logical */
 	case AND_IM:
@@ -567,6 +1244,8 @@ nesemu_error_t nes_cpu_next(struct nes_cpu_t *self,
 	case AND_AY:
 	case AND_IX:
 	case AND_IY:
+		err = _AND(self, opcode, mem, cycles);
+		break;
 
 	case EOR_IM:
 	case EOR_ZP:
@@ -576,6 +1255,8 @@ nesemu_error_t nes_cpu_next(struct nes_cpu_t *self,
 	case EOR_AY:
 	case EOR_IX:
 	case EOR_IY:
+		err = _EOR(self, opcode, mem, cycles);
+		break;
 
 	case ORA_IM:
 	case ORA_ZP:
@@ -585,9 +1266,13 @@ nesemu_error_t nes_cpu_next(struct nes_cpu_t *self,
 	case ORA_AY:
 	case ORA_IX:
 	case ORA_IY:
+		err = _ORA(self, opcode, mem, cycles);
+		break;
 
 	case BIT_ZP:
 	case BIT_AB:
+		err = _BIT(self, opcode, mem, cycles);
+		break;
 
 		/* Arithmetic */
 	case ADC_IM:
@@ -598,6 +1283,8 @@ nesemu_error_t nes_cpu_next(struct nes_cpu_t *self,
 	case ADC_AY:
 	case ADC_IX:
 	case ADC_IY:
+		err = _ADC(self, opcode, mem, cycles);
+		break;
 
 	case SBC_IM:
 	case SBC_ZP:
@@ -607,6 +1294,8 @@ nesemu_error_t nes_cpu_next(struct nes_cpu_t *self,
 	case SBC_AY:
 	case SBC_IX:
 	case SBC_IY:
+        err = _SBC(self, opcode, mem, cycles);
+        break;
 
 	case CMP_IM:
 	case CMP_ZP:
