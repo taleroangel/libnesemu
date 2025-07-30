@@ -14,20 +14,20 @@
 #define NESEMU_MEMORY_ROM_BEGIN (uint16_t)0x4020
 
 /**
- * Address at which prgmem (cardrige ROM) begins in memory
+ * Address at which PRGROM (cardrige ROM) begins in memory
  */
-#define NESEMU_MEMORY_PRGMEM_BEGIN (uint16_t)0x8000
+#define NESEMU_MEMORY_PRGROM_BEGIN (uint16_t)0x8000
 
 /**
- * Max size for prgmem
+ * Max size for PRGROM
  */
-#define NESEMU_MEMORY_PRGMEM_SIZE \
-    (size_t)(NESEMU_MEMORY_SIZE - NESEMU_MEMORY_PRGMEM_BEGIN) 
+#define NESEMU_MEMORY_PRGROM_SIZE \
+    (size_t)(NESEMU_MEMORY_SIZE - NESEMU_MEMORY_PRGROM_BEGIN) 
 
 /**
- * Write PRGMEM into memory.
+ * Write PRGROM into memory.
  * This is the data containing the program
  */
-nesemu_error_t nes_memory_wprgmem(nes_memory_t mem, uint8_t *data, size_t len);
+nesemu_error_t nes_memory_wPRGROM(nes_memory_t mem, uint8_t *data, size_t len);
 
 #endif

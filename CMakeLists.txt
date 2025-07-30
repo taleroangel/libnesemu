@@ -30,6 +30,10 @@ target_include_directories(
 
 # Build an emulator
 if(NESEMU_BUILD_EMULATOR)
-  message("Nesemu Linux emulator executable will be build!")
   add_subdirectory(emulator)
+endif()
+
+# Tests
+if(NESEMU_UNIT_TEST)
+  add_subdirectory(tests)
 endif()

@@ -26,7 +26,7 @@
  * Read appropiate memory address given the addressing mode
  *
  * @note Function to reduce boilerplate
- * @note Will read from actual prgmem, so $pc will change
+ * @note Will read from actual PRGROM, so $pc will change
  * @note NESEMU_ADDRESSING_IMMEDIATE not supported! will return error
  *
  * @param addr Reference to where the memory address to be used is stored.
