@@ -13,9 +13,10 @@
 #include <stdint.h>
 
 /**
- * Power up state for PC register
+ * Reset vector address.
+ * This is the address that $pc should take at power-up/reset.
  */
-#define NESEMU_CPU_INIT_PC (uint16_t)0xFFFC
+#define NESEMU_CPU_RESET_VECTOR_ADDR (uint16_t)0xFFFC
 
 /**
  * When restarting the SP should be decreased

@@ -17,7 +17,6 @@ nesemu_error_t nes_mem_r8(nes_memory_t mem, uint16_t addr, uint8_t *result)
 		return NESEMU_RETURN_BAD_ARGUMENTS;
 	}
 #endif
-
 	*result = mem[addr];
 	return NESEMU_RETURN_SUCCESS;
 }
