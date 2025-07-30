@@ -32,8 +32,8 @@
  * @param addr Reference to where the memory address to be used is stored.
  */
 static nesemu_error_t cpu_read_addr(struct nes_cpu_t *self,
-				    enum nes_cpu_addressing_mode_t addressing,
 				    nes_memory_t mem,
+				    enum nes_cpu_addressing_mode_t addressing,
 				    uint16_t *addr)
 {
 	// Error code
@@ -139,8 +139,8 @@ static nesemu_error_t cpu_read_addr(struct nes_cpu_t *self,
  * @param memory Reference to where the value will be stored
  */
 static nesemu_error_t cpu_read_mem(struct nes_cpu_t *self,
-				   enum nes_cpu_addressing_mode_t addressing,
 				   nes_memory_t mem,
+				   enum nes_cpu_addressing_mode_t addressing,
 				   int *cycles,
 				   uint8_t *memory)
 {
@@ -168,7 +168,7 @@ static nesemu_error_t cpu_read_mem(struct nes_cpu_t *self,
 		_NESEMU_FALLTHROUGH;
 	default:
 		// Get the address
-		err = cpu_read_addr(self, addressing, mem, &addr);
+		err = cpu_read_addr(self, mem, addressing, &addr);
 		if (err != NESEMU_RETURN_SUCCESS) {
 			return err;
 		}
@@ -185,13 +185,13 @@ static nesemu_error_t cpu_read_mem(struct nes_cpu_t *self,
 }
 
 static nesemu_error_t _LDA(struct nes_cpu_t *self,
-			   enum nes_cpu_addressing_mode_t addressing,
 			   nes_memory_t mem,
+			   enum nes_cpu_addressing_mode_t addressing,
 			   int *cycles)
 {
 	// Get value and store it in A
 	nesemu_error_t err =
-		cpu_read_mem(self, addressing, mem, cycles, &self->a);
+		cpu_read_mem(self, mem, addressing, cycles, &self->a);
 	if (err != NESEMU_RETURN_SUCCESS) {
 		return err;
 	}
@@ -203,13 +203,13 @@ static nesemu_error_t _LDA(struct nes_cpu_t *self,
 }
 
 static nesemu_error_t _LDX(struct nes_cpu_t *self,
-			   enum nes_cpu_addressing_mode_t addressing,
 			   nes_memory_t mem,
+			   enum nes_cpu_addressing_mode_t addressing,
 			   int *cycles)
 {
 	// Get value and store it in X
 	nesemu_error_t err =
-		cpu_read_mem(self, addressing, mem, cycles, &self->x);
+		cpu_read_mem(self, mem, addressing, cycles, &self->x);
 	if (err != NESEMU_RETURN_SUCCESS) {
 		return err;
 	}
@@ -221,13 +221,13 @@ static nesemu_error_t _LDX(struct nes_cpu_t *self,
 }
 
 static nesemu_error_t _LDY(struct nes_cpu_t *self,
-			   enum nes_cpu_addressing_mode_t addressing,
 			   nes_memory_t mem,
+			   enum nes_cpu_addressing_mode_t addressing,
 			   int *cycles)
 {
 	// Get value and store it in Y
 	nesemu_error_t err =
-		cpu_read_mem(self, addressing, mem, cycles, &self->y);
+		cpu_read_mem(self, mem, addressing, cycles, &self->y);
 	if (err != NESEMU_RETURN_SUCCESS) {
 		return err;
 	}
@@ -239,8 +239,8 @@ static nesemu_error_t _LDY(struct nes_cpu_t *self,
 }
 
 static nesemu_error_t _STA(struct nes_cpu_t *self,
-			   enum nes_cpu_addressing_mode_t addressing,
-			   nes_memory_t mem)
+			   nes_memory_t mem,
+			   enum nes_cpu_addressing_mode_t addressing)
 {
 	// Decode the value
 	nesemu_error_t err = NESEMU_RETURN_SUCCESS;
@@ -249,7 +249,7 @@ static nesemu_error_t _STA(struct nes_cpu_t *self,
 	uint16_t addr = 0;
 
 	// Get the address
-	err = cpu_read_addr(self, addressing, mem, &addr);
+	err = cpu_read_addr(self, mem, addressing, &addr);
 	if (err != NESEMU_RETURN_SUCCESS) {
 		return err;
 	}
@@ -264,8 +264,8 @@ static nesemu_error_t _STA(struct nes_cpu_t *self,
 }
 
 static nesemu_error_t _STX(struct nes_cpu_t *self,
-			   enum nes_cpu_addressing_mode_t addressing,
-			   nes_memory_t mem)
+			   nes_memory_t mem,
+			   enum nes_cpu_addressing_mode_t addressing)
 {
 	// Decode the value
 	nesemu_error_t err = NESEMU_RETURN_SUCCESS;
@@ -274,7 +274,7 @@ static nesemu_error_t _STX(struct nes_cpu_t *self,
 	uint16_t addr = 0;
 
 	// Get the address
-	err = cpu_read_addr(self, addressing, mem, &addr);
+	err = cpu_read_addr(self, mem, addressing, &addr);
 	if (err != NESEMU_RETURN_SUCCESS) {
 		return err;
 	}
@@ -289,8 +289,8 @@ static nesemu_error_t _STX(struct nes_cpu_t *self,
 }
 
 static nesemu_error_t _STY(struct nes_cpu_t *self,
-			   enum nes_cpu_addressing_mode_t addressing,
-			   nes_memory_t mem)
+			   nes_memory_t mem,
+			   enum nes_cpu_addressing_mode_t addressing)
 {
 	// Decode the value
 	nesemu_error_t err = NESEMU_RETURN_SUCCESS;
@@ -299,7 +299,7 @@ static nesemu_error_t _STY(struct nes_cpu_t *self,
 	uint16_t addr = 0;
 
 	// Get the address
-	err = cpu_read_addr(self, addressing, mem, &addr);
+	err = cpu_read_addr(self, mem, addressing, &addr);
 	if (err != NESEMU_RETURN_SUCCESS) {
 		return err;
 	}
@@ -358,8 +358,8 @@ static nesemu_error_t _TXX(struct nes_cpu_t *self, uint8_t opcode)
 }
 
 static nesemu_error_t _ADC(struct nes_cpu_t *self,
-			   enum nes_cpu_addressing_mode_t addressing,
 			   nes_memory_t mem,
+			   enum nes_cpu_addressing_mode_t addressing,
 			   int *cycles)
 {
 	// Where to store the value to be added
@@ -367,7 +367,7 @@ static nesemu_error_t _ADC(struct nes_cpu_t *self,
 
 	// Read memory given addressing mode
 	nesemu_error_t err =
-		cpu_read_mem(self, addressing, mem, cycles, &memory);
+		cpu_read_mem(self, mem, addressing, cycles, &memory);
 	if (err != NESEMU_RETURN_SUCCESS) {
 		return err;
 	}
@@ -402,8 +402,8 @@ static nesemu_error_t _ADC(struct nes_cpu_t *self,
 }
 
 static nesemu_error_t _SBC(struct nes_cpu_t *self,
-			   enum nes_cpu_addressing_mode_t addressing,
 			   nes_memory_t mem,
+			   enum nes_cpu_addressing_mode_t addressing,
 			   int *cycles)
 {
 	// Where to store the value to be added
@@ -411,7 +411,7 @@ static nesemu_error_t _SBC(struct nes_cpu_t *self,
 
 	// Read memory given addressing mode
 	nesemu_error_t err =
-		cpu_read_mem(self, addressing, mem, cycles, &memory);
+		cpu_read_mem(self, mem, addressing, cycles, &memory);
 	if (err != NESEMU_RETURN_SUCCESS) {
 		return err;
 	}
@@ -446,8 +446,8 @@ static nesemu_error_t _SBC(struct nes_cpu_t *self,
 }
 
 static nesemu_error_t _INC(struct nes_cpu_t *self,
-			   enum nes_cpu_addressing_mode_t addressing,
-			   nes_memory_t mem)
+			   nes_memory_t mem,
+			   enum nes_cpu_addressing_mode_t addressing)
 {
 	// Decode the value
 	nesemu_error_t err = NESEMU_RETURN_SUCCESS;
@@ -459,7 +459,7 @@ static nesemu_error_t _INC(struct nes_cpu_t *self,
 	uint8_t memory = 0;
 
 	// Get the address
-	err = cpu_read_addr(self, addressing, mem, &addr);
+	err = cpu_read_addr(self, mem, addressing, &addr);
 	if (err != NESEMU_RETURN_SUCCESS) {
 		return err;
 	}
@@ -486,8 +486,8 @@ static nesemu_error_t _INC(struct nes_cpu_t *self,
 }
 
 static nesemu_error_t _DEC(struct nes_cpu_t *self,
-			   enum nes_cpu_addressing_mode_t addressing,
-			   nes_memory_t mem)
+			   nes_memory_t mem,
+			   enum nes_cpu_addressing_mode_t addressing)
 {
 	// Decode the value
 	nesemu_error_t err = NESEMU_RETURN_SUCCESS;
@@ -499,7 +499,7 @@ static nesemu_error_t _DEC(struct nes_cpu_t *self,
 	uint8_t memory = 0;
 
 	// Get the address
-	err = cpu_read_addr(self, addressing, mem, &addr);
+	err = cpu_read_addr(self, mem, addressing, &addr);
 	if (err != NESEMU_RETURN_SUCCESS) {
 		return err;
 	}
@@ -562,8 +562,8 @@ static inline void _DEY(struct nes_cpu_t *self)
 }
 
 static nesemu_error_t _ASL(struct nes_cpu_t *self,
-			   enum nes_cpu_addressing_mode_t addressing,
-			   nes_memory_t mem)
+			   nes_memory_t mem,
+			   enum nes_cpu_addressing_mode_t addressing)
 {
 	// Decode the value
 	nesemu_error_t err = NESEMU_RETURN_SUCCESS;
@@ -582,7 +582,7 @@ static nesemu_error_t _ASL(struct nes_cpu_t *self,
 
 	default:
 		// Get the address
-		err = cpu_read_addr(self, addressing, mem, &addr);
+		err = cpu_read_addr(self, mem, addressing, &addr);
 		if (err != NESEMU_RETURN_SUCCESS) {
 			return err;
 		}
@@ -626,8 +626,8 @@ static nesemu_error_t _ASL(struct nes_cpu_t *self,
 }
 
 static nesemu_error_t _LSR(struct nes_cpu_t *self,
-			   enum nes_cpu_addressing_mode_t addressing,
-			   nes_memory_t mem)
+			   nes_memory_t mem,
+			   enum nes_cpu_addressing_mode_t addressing)
 {
 	// Decode the value
 	nesemu_error_t err = NESEMU_RETURN_SUCCESS;
@@ -646,7 +646,7 @@ static nesemu_error_t _LSR(struct nes_cpu_t *self,
 
 	default:
 		// Get the address
-		err = cpu_read_addr(self, addressing, mem, &addr);
+		err = cpu_read_addr(self, mem, addressing, &addr);
 		if (err != NESEMU_RETURN_SUCCESS) {
 			return err;
 		}
@@ -690,8 +690,8 @@ static nesemu_error_t _LSR(struct nes_cpu_t *self,
 }
 
 static nesemu_error_t _ROL(struct nes_cpu_t *self,
-			   enum nes_cpu_addressing_mode_t addressing,
-			   nes_memory_t mem)
+			   nes_memory_t mem,
+			   enum nes_cpu_addressing_mode_t addressing)
 {
 	// Decode the value
 	nesemu_error_t err = NESEMU_RETURN_SUCCESS;
@@ -710,7 +710,7 @@ static nesemu_error_t _ROL(struct nes_cpu_t *self,
 
 	default:
 		// Get the address
-		err = cpu_read_addr(self, addressing, mem, &addr);
+		err = cpu_read_addr(self, mem, addressing, &addr);
 		if (err != NESEMU_RETURN_SUCCESS) {
 			return err;
 		}
@@ -751,8 +751,8 @@ static nesemu_error_t _ROL(struct nes_cpu_t *self,
 }
 
 static nesemu_error_t _ROR(struct nes_cpu_t *self,
-			   enum nes_cpu_addressing_mode_t addressing,
-			   nes_memory_t mem)
+			   nes_memory_t mem,
+			   enum nes_cpu_addressing_mode_t addressing)
 {
 	// Decode the value
 	nesemu_error_t err = NESEMU_RETURN_SUCCESS;
@@ -771,7 +771,7 @@ static nesemu_error_t _ROR(struct nes_cpu_t *self,
 
 	default:
 		// Get the address
-		err = cpu_read_addr(self, addressing, mem, &addr);
+		err = cpu_read_addr(self, mem, addressing, &addr);
 		if (err != NESEMU_RETURN_SUCCESS) {
 			return err;
 		}
@@ -812,8 +812,8 @@ static nesemu_error_t _ROR(struct nes_cpu_t *self,
 }
 
 static nesemu_error_t _AND(struct nes_cpu_t *self,
-			   enum nes_cpu_addressing_mode_t addressing,
 			   nes_memory_t mem,
+			   enum nes_cpu_addressing_mode_t addressing,
 			   int *cycles)
 {
 	// Place holder
@@ -821,7 +821,7 @@ static nesemu_error_t _AND(struct nes_cpu_t *self,
 
 	// Read memory given addressing mode
 	nesemu_error_t err =
-		cpu_read_mem(self, addressing, mem, cycles, &memory);
+		cpu_read_mem(self, mem, addressing, cycles, &memory);
 	if (err != NESEMU_RETURN_SUCCESS) {
 		return err;
 	}
@@ -836,8 +836,8 @@ static nesemu_error_t _AND(struct nes_cpu_t *self,
 }
 
 static nesemu_error_t _ORA(struct nes_cpu_t *self,
-			   enum nes_cpu_addressing_mode_t addressing,
 			   nes_memory_t mem,
+			   enum nes_cpu_addressing_mode_t addressing,
 			   int *cycles)
 {
 	// Place holder
@@ -845,7 +845,7 @@ static nesemu_error_t _ORA(struct nes_cpu_t *self,
 
 	// Read memory given addressing mode
 	nesemu_error_t err =
-		cpu_read_mem(self, addressing, mem, cycles, &memory);
+		cpu_read_mem(self, mem, addressing, cycles, &memory);
 	if (err != NESEMU_RETURN_SUCCESS) {
 		return err;
 	}
@@ -860,8 +860,8 @@ static nesemu_error_t _ORA(struct nes_cpu_t *self,
 }
 
 static nesemu_error_t _EOR(struct nes_cpu_t *self,
-			   enum nes_cpu_addressing_mode_t addressing,
 			   nes_memory_t mem,
+			   enum nes_cpu_addressing_mode_t addressing,
 			   int *cycles)
 {
 	// Place holder
@@ -869,7 +869,7 @@ static nesemu_error_t _EOR(struct nes_cpu_t *self,
 
 	// Read memory given addressing mode
 	nesemu_error_t err =
-		cpu_read_mem(self, addressing, mem, cycles, &memory);
+		cpu_read_mem(self, mem, addressing, cycles, &memory);
 	if (err != NESEMU_RETURN_SUCCESS) {
 		return err;
 	}
@@ -884,8 +884,8 @@ static nesemu_error_t _EOR(struct nes_cpu_t *self,
 }
 
 static nesemu_error_t _BIT(struct nes_cpu_t *self,
-			   enum nes_cpu_addressing_mode_t addressing,
-			   nes_memory_t mem)
+			   nes_memory_t mem,
+			   enum nes_cpu_addressing_mode_t addressing)
 {
 	// Decode the value
 	nesemu_error_t err = NESEMU_RETURN_SUCCESS;
@@ -897,7 +897,7 @@ static nesemu_error_t _BIT(struct nes_cpu_t *self,
 	uint8_t memory = 0;
 
 	// Get the address
-	err = cpu_read_addr(self, addressing, mem, &addr);
+	err = cpu_read_addr(self, mem, addressing, &addr);
 	if (err != NESEMU_RETURN_SUCCESS) {
 		return err;
 	}
@@ -920,8 +920,8 @@ static nesemu_error_t _BIT(struct nes_cpu_t *self,
 }
 
 static nesemu_error_t _CMP(struct nes_cpu_t *self,
-			   enum nes_cpu_addressing_mode_t addressing,
 			   nes_memory_t mem,
+			   enum nes_cpu_addressing_mode_t addressing,
 			   int *cycles)
 {
 	// Place holder
@@ -929,7 +929,7 @@ static nesemu_error_t _CMP(struct nes_cpu_t *self,
 
 	// Read memory given addressing mode
 	nesemu_error_t err =
-		cpu_read_mem(self, addressing, mem, cycles, &memory);
+		cpu_read_mem(self, mem, addressing, cycles, &memory);
 	if (err != NESEMU_RETURN_SUCCESS) {
 		return err;
 	}
@@ -949,8 +949,8 @@ static nesemu_error_t _CMP(struct nes_cpu_t *self,
 }
 
 static nesemu_error_t _CPX(struct nes_cpu_t *self,
-			   enum nes_cpu_addressing_mode_t addressing,
 			   nes_memory_t mem,
+			   enum nes_cpu_addressing_mode_t addressing,
 			   int *cycles)
 {
 	// Place holder
@@ -958,7 +958,7 @@ static nesemu_error_t _CPX(struct nes_cpu_t *self,
 
 	// Read memory given addressing mode
 	nesemu_error_t err =
-		cpu_read_mem(self, addressing, mem, cycles, &memory);
+		cpu_read_mem(self, mem, addressing, cycles, &memory);
 	if (err != NESEMU_RETURN_SUCCESS) {
 		return err;
 	}
@@ -978,8 +978,8 @@ static nesemu_error_t _CPX(struct nes_cpu_t *self,
 }
 
 static nesemu_error_t _CPY(struct nes_cpu_t *self,
-			   enum nes_cpu_addressing_mode_t addressing,
 			   nes_memory_t mem,
+			   enum nes_cpu_addressing_mode_t addressing,
 			   int *cycles)
 {
 	// Place holder
@@ -987,7 +987,7 @@ static nesemu_error_t _CPY(struct nes_cpu_t *self,
 
 	// Read memory given addressing mode
 	nesemu_error_t err =
-		cpu_read_mem(self, addressing, mem, cycles, &memory);
+		cpu_read_mem(self, mem, addressing, cycles, &memory);
 	if (err != NESEMU_RETURN_SUCCESS) {
 		return err;
 	}
@@ -1332,107 +1332,107 @@ nesemu_error_t nes_cpu_next(struct nes_cpu_t *self, nes_memory_t mem, int *c)
 	switch (opc) {
 	// LDA
 	case LDA_IM:
-		err = _LDA(self, NESEMU_ADDRESSING_IMMEDIATE, mem, c);
+		err = _LDA(self, mem, NESEMU_ADDRESSING_IMMEDIATE, c);
 		break;
 	case LDA_ZP:
-		err = _LDA(self, NESEMU_ADDRESSING_ZERO_PAGE, mem, c);
+		err = _LDA(self, mem, NESEMU_ADDRESSING_ZERO_PAGE, c);
 		break;
 	case LDA_ZX:
-		err = _LDA(self, NESEMU_ADDRESSING_ZERO_PAGE_X, mem, c);
+		err = _LDA(self, mem, NESEMU_ADDRESSING_ZERO_PAGE_X, c);
 		break;
 	case LDA_AB:
-		err = _LDA(self, NESEMU_ADDRESSING_ABSOLUTE, mem, c);
+		err = _LDA(self, mem, NESEMU_ADDRESSING_ABSOLUTE, c);
 		break;
 	case LDA_AX:
-		err = _LDA(self, NESEMU_ADDRESSING_ABSOLUTE_X, mem, c);
+		err = _LDA(self, mem, NESEMU_ADDRESSING_ABSOLUTE_X, c);
 		break;
 	case LDA_AY:
-		err = _LDA(self, NESEMU_ADDRESSING_ABSOLUTE_Y, mem, c);
+		err = _LDA(self, mem, NESEMU_ADDRESSING_ABSOLUTE_Y, c);
 		break;
 	case LDA_IX:
-		err = _LDA(self, NESEMU_ADDRESSING_INDIRECT_X, mem, c);
+		err = _LDA(self, mem, NESEMU_ADDRESSING_INDIRECT_X, c);
 		break;
 	case LDA_IY:
-		err = _LDA(self, NESEMU_ADDRESSING_INDIRECT_Y, mem, c);
+		err = _LDA(self, mem, NESEMU_ADDRESSING_INDIRECT_Y, c);
 		break;
 
 	// LDX
 	case LDX_IM:
-		err = _LDX(self, NESEMU_ADDRESSING_IMMEDIATE, mem, c);
+		err = _LDX(self, mem, NESEMU_ADDRESSING_IMMEDIATE, c);
 		break;
 	case LDX_ZP:
-		err = _LDX(self, NESEMU_ADDRESSING_ZERO_PAGE, mem, c);
+		err = _LDX(self, mem, NESEMU_ADDRESSING_ZERO_PAGE, c);
 		break;
 	case LDX_ZY:
-		err = _LDX(self, NESEMU_ADDRESSING_ZERO_PAGE_Y, mem, c);
+		err = _LDX(self, mem, NESEMU_ADDRESSING_ZERO_PAGE_Y, c);
 		break;
 	case LDX_AB:
-		err = _LDX(self, NESEMU_ADDRESSING_ABSOLUTE, mem, c);
+		err = _LDX(self, mem, NESEMU_ADDRESSING_ABSOLUTE, c);
 		break;
 	case LDX_AY:
-		err = _LDX(self, NESEMU_ADDRESSING_ABSOLUTE_Y, mem, c);
+		err = _LDX(self, mem, NESEMU_ADDRESSING_ABSOLUTE_Y, c);
 		break;
 
 	// LDY
 	case LDY_IM:
-		err = _LDY(self, NESEMU_ADDRESSING_IMMEDIATE, mem, c);
+		err = _LDY(self, mem, NESEMU_ADDRESSING_IMMEDIATE, c);
 		break;
 	case LDY_ZP:
-		err = _LDY(self, NESEMU_ADDRESSING_ZERO_PAGE, mem, c);
+		err = _LDY(self, mem, NESEMU_ADDRESSING_ZERO_PAGE, c);
 		break;
 	case LDY_ZX:
-		err = _LDY(self, NESEMU_ADDRESSING_ZERO_PAGE_X, mem, c);
+		err = _LDY(self, mem, NESEMU_ADDRESSING_ZERO_PAGE_X, c);
 		break;
 	case LDY_AB:
-		err = _LDY(self, NESEMU_ADDRESSING_ABSOLUTE, mem, c);
+		err = _LDY(self, mem, NESEMU_ADDRESSING_ABSOLUTE, c);
 		break;
 	case LDY_AX:
-		err = _LDY(self, NESEMU_ADDRESSING_ABSOLUTE_X, mem, c);
+		err = _LDY(self, mem, NESEMU_ADDRESSING_ABSOLUTE_X, c);
 		break;
 
 	// STA
 	case STA_ZP:
-		err = _STA(self, NESEMU_ADDRESSING_ZERO_PAGE, mem);
+		err = _STA(self, mem, NESEMU_ADDRESSING_ZERO_PAGE);
 		break;
 	case STA_ZX:
-		err = _STA(self, NESEMU_ADDRESSING_ZERO_PAGE_X, mem);
+		err = _STA(self, mem, NESEMU_ADDRESSING_ZERO_PAGE_X);
 		break;
 	case STA_AB:
-		err = _STA(self, NESEMU_ADDRESSING_ABSOLUTE, mem);
+		err = _STA(self, mem, NESEMU_ADDRESSING_ABSOLUTE);
 		break;
 	case STA_AX:
-		err = _STA(self, NESEMU_ADDRESSING_ABSOLUTE_X, mem);
+		err = _STA(self, mem, NESEMU_ADDRESSING_ABSOLUTE_X);
 		break;
 	case STA_AY:
-		err = _STA(self, NESEMU_ADDRESSING_ABSOLUTE_Y, mem);
+		err = _STA(self, mem, NESEMU_ADDRESSING_ABSOLUTE_Y);
 		break;
 	case STA_IX:
-		err = _STA(self, NESEMU_ADDRESSING_INDIRECT_X, mem);
+		err = _STA(self, mem, NESEMU_ADDRESSING_INDIRECT_X);
 		break;
 	case STA_IY:
-		err = _STA(self, NESEMU_ADDRESSING_INDIRECT_Y, mem);
+		err = _STA(self, mem, NESEMU_ADDRESSING_INDIRECT_Y);
 		break;
 
 		// STX
 	case STX_ZP:
-		err = _STX(self, NESEMU_ADDRESSING_ZERO_PAGE, mem);
+		err = _STX(self, mem, NESEMU_ADDRESSING_ZERO_PAGE);
 		break;
 	case STX_ZY:
-		err = _STX(self, NESEMU_ADDRESSING_ZERO_PAGE_Y, mem);
+		err = _STX(self, mem, NESEMU_ADDRESSING_ZERO_PAGE_Y);
 		break;
 	case STX_AB:
-		err = _STX(self, NESEMU_ADDRESSING_ABSOLUTE, mem);
+		err = _STX(self, mem, NESEMU_ADDRESSING_ABSOLUTE);
 		break;
 
 	// STY
 	case STY_ZP:
-		err = _STY(self, NESEMU_ADDRESSING_ZERO_PAGE, mem);
+		err = _STY(self, mem, NESEMU_ADDRESSING_ZERO_PAGE);
 		break;
 	case STY_ZX:
-		err = _STY(self, NESEMU_ADDRESSING_ZERO_PAGE_X, mem);
+		err = _STY(self, mem, NESEMU_ADDRESSING_ZERO_PAGE_X);
 		break;
 	case STY_AB:
-		err = _STY(self, NESEMU_ADDRESSING_ABSOLUTE, mem);
+		err = _STY(self, mem, NESEMU_ADDRESSING_ABSOLUTE);
 		break;
 
 		// TAX
@@ -1453,202 +1453,202 @@ nesemu_error_t nes_cpu_next(struct nes_cpu_t *self, nes_memory_t mem, int *c)
 
 		// AND
 	case AND_IM:
-		err = _AND(self, NESEMU_ADDRESSING_IMMEDIATE, mem, c);
+		err = _AND(self, mem, NESEMU_ADDRESSING_IMMEDIATE, c);
 		break;
 	case AND_ZP:
-		err = _AND(self, NESEMU_ADDRESSING_ZERO_PAGE, mem, c);
+		err = _AND(self, mem, NESEMU_ADDRESSING_ZERO_PAGE, c);
 		break;
 	case AND_ZX:
-		err = _AND(self, NESEMU_ADDRESSING_ZERO_PAGE_X, mem, c);
+		err = _AND(self, mem, NESEMU_ADDRESSING_ZERO_PAGE_X, c);
 		break;
 	case AND_AB:
-		err = _AND(self, NESEMU_ADDRESSING_ABSOLUTE, mem, c);
+		err = _AND(self, mem, NESEMU_ADDRESSING_ABSOLUTE, c);
 		break;
 	case AND_AX:
-		err = _AND(self, NESEMU_ADDRESSING_ABSOLUTE_X, mem, c);
+		err = _AND(self, mem, NESEMU_ADDRESSING_ABSOLUTE_X, c);
 		break;
 	case AND_AY:
-		err = _AND(self, NESEMU_ADDRESSING_ABSOLUTE_Y, mem, c);
+		err = _AND(self, mem, NESEMU_ADDRESSING_ABSOLUTE_Y, c);
 		break;
 	case AND_IX:
-		err = _AND(self, NESEMU_ADDRESSING_INDIRECT_X, mem, c);
+		err = _AND(self, mem, NESEMU_ADDRESSING_INDIRECT_X, c);
 		break;
 	case AND_IY:
-		err = _AND(self, NESEMU_ADDRESSING_INDIRECT_Y, mem, c);
+		err = _AND(self, mem, NESEMU_ADDRESSING_INDIRECT_Y, c);
 		break;
 
 		// EOR
 	case EOR_IM:
-		err = _EOR(self, NESEMU_ADDRESSING_IMMEDIATE, mem, c);
+		err = _EOR(self, mem, NESEMU_ADDRESSING_IMMEDIATE, c);
 		break;
 	case EOR_ZP:
-		err = _EOR(self, NESEMU_ADDRESSING_ZERO_PAGE, mem, c);
+		err = _EOR(self, mem, NESEMU_ADDRESSING_ZERO_PAGE, c);
 		break;
 	case EOR_ZX:
-		err = _EOR(self, NESEMU_ADDRESSING_ZERO_PAGE_X, mem, c);
+		err = _EOR(self, mem, NESEMU_ADDRESSING_ZERO_PAGE_X, c);
 		break;
 	case EOR_AB:
-		err = _EOR(self, NESEMU_ADDRESSING_ABSOLUTE, mem, c);
+		err = _EOR(self, mem, NESEMU_ADDRESSING_ABSOLUTE, c);
 		break;
 	case EOR_AX:
-		err = _EOR(self, NESEMU_ADDRESSING_ABSOLUTE_X, mem, c);
+		err = _EOR(self, mem, NESEMU_ADDRESSING_ABSOLUTE_X, c);
 		break;
 	case EOR_AY:
-		err = _EOR(self, NESEMU_ADDRESSING_ABSOLUTE_Y, mem, c);
+		err = _EOR(self, mem, NESEMU_ADDRESSING_ABSOLUTE_Y, c);
 		break;
 	case EOR_IX:
-		err = _EOR(self, NESEMU_ADDRESSING_INDIRECT_X, mem, c);
+		err = _EOR(self, mem, NESEMU_ADDRESSING_INDIRECT_X, c);
 		break;
 	case EOR_IY:
-		err = _EOR(self, NESEMU_ADDRESSING_INDIRECT_Y, mem, c);
+		err = _EOR(self, mem, NESEMU_ADDRESSING_INDIRECT_Y, c);
 		break;
 
 		// ORA
 	case ORA_IM:
-		err = _ORA(self, NESEMU_ADDRESSING_IMMEDIATE, mem, c);
+		err = _ORA(self, mem, NESEMU_ADDRESSING_IMMEDIATE, c);
 		break;
 	case ORA_ZP:
-		err = _ORA(self, NESEMU_ADDRESSING_ZERO_PAGE, mem, c);
+		err = _ORA(self, mem, NESEMU_ADDRESSING_ZERO_PAGE, c);
 		break;
 	case ORA_ZX:
-		err = _ORA(self, NESEMU_ADDRESSING_ZERO_PAGE_X, mem, c);
+		err = _ORA(self, mem, NESEMU_ADDRESSING_ZERO_PAGE_X, c);
 		break;
 	case ORA_AB:
-		err = _ORA(self, NESEMU_ADDRESSING_ABSOLUTE, mem, c);
+		err = _ORA(self, mem, NESEMU_ADDRESSING_ABSOLUTE, c);
 		break;
 	case ORA_AX:
-		err = _ORA(self, NESEMU_ADDRESSING_ABSOLUTE_X, mem, c);
+		err = _ORA(self, mem, NESEMU_ADDRESSING_ABSOLUTE_X, c);
 		break;
 	case ORA_AY:
-		err = _ORA(self, NESEMU_ADDRESSING_ABSOLUTE_Y, mem, c);
+		err = _ORA(self, mem, NESEMU_ADDRESSING_ABSOLUTE_Y, c);
 		break;
 	case ORA_IX:
-		err = _ORA(self, NESEMU_ADDRESSING_INDIRECT_X, mem, c);
+		err = _ORA(self, mem, NESEMU_ADDRESSING_INDIRECT_X, c);
 		break;
 	case ORA_IY:
-		err = _ORA(self, NESEMU_ADDRESSING_INDIRECT_Y, mem, c);
+		err = _ORA(self, mem, NESEMU_ADDRESSING_INDIRECT_Y, c);
 		break;
 
 		// BIT
 	case BIT_ZP:
-		err = _BIT(self, NESEMU_ADDRESSING_ZERO_PAGE, mem);
+		err = _BIT(self, mem, NESEMU_ADDRESSING_ZERO_PAGE);
 		break;
 	case BIT_AB:
-		err = _BIT(self, NESEMU_ADDRESSING_ABSOLUTE, mem);
+		err = _BIT(self, mem, NESEMU_ADDRESSING_ABSOLUTE);
 		break;
 
 		// ADC
 	case ADC_IM:
-		err = _ADC(self, NESEMU_ADDRESSING_IMMEDIATE, mem, c);
+		err = _ADC(self, mem, NESEMU_ADDRESSING_IMMEDIATE, c);
 		break;
 	case ADC_ZP:
-		err = _ADC(self, NESEMU_ADDRESSING_ZERO_PAGE, mem, c);
+		err = _ADC(self, mem, NESEMU_ADDRESSING_ZERO_PAGE, c);
 		break;
 	case ADC_ZX:
-		err = _ADC(self, NESEMU_ADDRESSING_ZERO_PAGE_X, mem, c);
+		err = _ADC(self, mem, NESEMU_ADDRESSING_ZERO_PAGE_X, c);
 		break;
 	case ADC_AB:
-		err = _ADC(self, NESEMU_ADDRESSING_ABSOLUTE, mem, c);
+		err = _ADC(self, mem, NESEMU_ADDRESSING_ABSOLUTE, c);
 		break;
 	case ADC_AX:
-		err = _ADC(self, NESEMU_ADDRESSING_ABSOLUTE_X, mem, c);
+		err = _ADC(self, mem, NESEMU_ADDRESSING_ABSOLUTE_X, c);
 		break;
 	case ADC_AY:
-		err = _ADC(self, NESEMU_ADDRESSING_ABSOLUTE_Y, mem, c);
+		err = _ADC(self, mem, NESEMU_ADDRESSING_ABSOLUTE_Y, c);
 		break;
 	case ADC_IX:
-		err = _ADC(self, NESEMU_ADDRESSING_INDIRECT_X, mem, c);
+		err = _ADC(self, mem, NESEMU_ADDRESSING_INDIRECT_X, c);
 		break;
 	case ADC_IY:
-		err = _ADC(self, NESEMU_ADDRESSING_INDIRECT_Y, mem, c);
+		err = _ADC(self, mem, NESEMU_ADDRESSING_INDIRECT_Y, c);
 		break;
 
 		// SBC
 	case SBC_IM:
-		err = _SBC(self, NESEMU_ADDRESSING_IMMEDIATE, mem, c);
+		err = _SBC(self, mem, NESEMU_ADDRESSING_IMMEDIATE, c);
 		break;
 	case SBC_ZP:
-		err = _SBC(self, NESEMU_ADDRESSING_ZERO_PAGE, mem, c);
+		err = _SBC(self, mem, NESEMU_ADDRESSING_ZERO_PAGE, c);
 		break;
 	case SBC_ZX:
-		err = _SBC(self, NESEMU_ADDRESSING_ZERO_PAGE_X, mem, c);
+		err = _SBC(self, mem, NESEMU_ADDRESSING_ZERO_PAGE_X, c);
 		break;
 	case SBC_AB:
-		err = _SBC(self, NESEMU_ADDRESSING_ABSOLUTE, mem, c);
+		err = _SBC(self, mem, NESEMU_ADDRESSING_ABSOLUTE, c);
 		break;
 	case SBC_AX:
-		err = _SBC(self, NESEMU_ADDRESSING_ABSOLUTE_X, mem, c);
+		err = _SBC(self, mem, NESEMU_ADDRESSING_ABSOLUTE_X, c);
 		break;
 	case SBC_AY:
-		err = _SBC(self, NESEMU_ADDRESSING_ABSOLUTE_Y, mem, c);
+		err = _SBC(self, mem, NESEMU_ADDRESSING_ABSOLUTE_Y, c);
 		break;
 	case SBC_IX:
-		err = _SBC(self, NESEMU_ADDRESSING_INDIRECT_X, mem, c);
+		err = _SBC(self, mem, NESEMU_ADDRESSING_INDIRECT_X, c);
 		break;
 	case SBC_IY:
-		err = _SBC(self, NESEMU_ADDRESSING_INDIRECT_Y, mem, c);
+		err = _SBC(self, mem, NESEMU_ADDRESSING_INDIRECT_Y, c);
 		break;
 
 		// CMP
 	case CMP_IM:
-		err = _CMP(self, NESEMU_ADDRESSING_IMMEDIATE, mem, c);
+		err = _CMP(self, mem, NESEMU_ADDRESSING_IMMEDIATE, c);
 		break;
 	case CMP_ZP:
-		err = _CMP(self, NESEMU_ADDRESSING_ZERO_PAGE, mem, c);
+		err = _CMP(self, mem, NESEMU_ADDRESSING_ZERO_PAGE, c);
 		break;
 	case CMP_ZX:
-		err = _CMP(self, NESEMU_ADDRESSING_ZERO_PAGE_X, mem, c);
+		err = _CMP(self, mem, NESEMU_ADDRESSING_ZERO_PAGE_X, c);
 		break;
 	case CMP_AB:
-		err = _CMP(self, NESEMU_ADDRESSING_ABSOLUTE, mem, c);
+		err = _CMP(self, mem, NESEMU_ADDRESSING_ABSOLUTE, c);
 		break;
 	case CMP_AX:
-		err = _CMP(self, NESEMU_ADDRESSING_ABSOLUTE_X, mem, c);
+		err = _CMP(self, mem, NESEMU_ADDRESSING_ABSOLUTE_X, c);
 		break;
 	case CMP_AY:
-		err = _CMP(self, NESEMU_ADDRESSING_ABSOLUTE_Y, mem, c);
+		err = _CMP(self, mem, NESEMU_ADDRESSING_ABSOLUTE_Y, c);
 		break;
 	case CMP_IX:
-		err = _CMP(self, NESEMU_ADDRESSING_INDIRECT_X, mem, c);
+		err = _CMP(self, mem, NESEMU_ADDRESSING_INDIRECT_X, c);
 		break;
 	case CMP_IY:
-		err = _CMP(self, NESEMU_ADDRESSING_INDIRECT_Y, mem, c);
+		err = _CMP(self, mem, NESEMU_ADDRESSING_INDIRECT_Y, c);
 		break;
 
 		// CPX
 	case CPX_IM:
-		err = _CPX(self, NESEMU_ADDRESSING_IMMEDIATE, mem, c);
+		err = _CPX(self, mem, NESEMU_ADDRESSING_IMMEDIATE, c);
 		break;
 	case CPX_ZP:
-		err = _CPX(self, NESEMU_ADDRESSING_ZERO_PAGE, mem, c);
+		err = _CPX(self, mem, NESEMU_ADDRESSING_ZERO_PAGE, c);
 		break;
 	case CPX_AB:
-		err = _CPX(self, NESEMU_ADDRESSING_ABSOLUTE, mem, c);
+		err = _CPX(self, mem, NESEMU_ADDRESSING_ABSOLUTE, c);
 		break;
 
 		// CPY
 	case CPY_IM:
-		err = _CPY(self, NESEMU_ADDRESSING_IMMEDIATE, mem, c);
+		err = _CPY(self, mem, NESEMU_ADDRESSING_IMMEDIATE, c);
 		break;
 	case CPY_ZP:
-		err = _CPY(self, NESEMU_ADDRESSING_ZERO_PAGE, mem, c);
+		err = _CPY(self, mem, NESEMU_ADDRESSING_ZERO_PAGE, c);
 		break;
 	case CPY_AB:
-		err = _CPY(self, NESEMU_ADDRESSING_ABSOLUTE, mem, c);
+		err = _CPY(self, mem, NESEMU_ADDRESSING_ABSOLUTE, c);
 		break;
 
 		// INC
 	case INC_ZP:
-		_INC(self, NESEMU_ADDRESSING_ZERO_PAGE, mem);
+		_INC(self, mem, NESEMU_ADDRESSING_ZERO_PAGE);
 		break;
 	case INC_ZX:
-		_INC(self, NESEMU_ADDRESSING_ZERO_PAGE_X, mem);
+		_INC(self, mem, NESEMU_ADDRESSING_ZERO_PAGE_X);
 		break;
 	case INC_AB:
-		_INC(self, NESEMU_ADDRESSING_ABSOLUTE, mem);
+		_INC(self, mem, NESEMU_ADDRESSING_ABSOLUTE);
 		break;
 	case INC_AX:
-		_INC(self, NESEMU_ADDRESSING_ABSOLUTE_X, mem);
+		_INC(self, mem, NESEMU_ADDRESSING_ABSOLUTE_X);
 		break;
 
 		// INX
@@ -1663,16 +1663,16 @@ nesemu_error_t nes_cpu_next(struct nes_cpu_t *self, nes_memory_t mem, int *c)
 
 		// DEC
 	case DEC_ZP:
-		_DEC(self, NESEMU_ADDRESSING_ZERO_PAGE, mem);
+		_DEC(self, mem, NESEMU_ADDRESSING_ZERO_PAGE);
 		break;
 	case DEC_ZX:
-		_DEC(self, NESEMU_ADDRESSING_ZERO_PAGE_X, mem);
+		_DEC(self, mem, NESEMU_ADDRESSING_ZERO_PAGE_X);
 		break;
 	case DEC_AB:
-		_DEC(self, NESEMU_ADDRESSING_ABSOLUTE, mem);
+		_DEC(self, mem, NESEMU_ADDRESSING_ABSOLUTE);
 		break;
 	case DEC_AX:
-		_DEC(self, NESEMU_ADDRESSING_ABSOLUTE_X, mem);
+		_DEC(self, mem, NESEMU_ADDRESSING_ABSOLUTE_X);
 		break;
 
 		// DEX
@@ -1687,100 +1687,100 @@ nesemu_error_t nes_cpu_next(struct nes_cpu_t *self, nes_memory_t mem, int *c)
 
 		// ASL
 	case ASL_ACC:
-		_ASL(self, NESEMU_ADDRESSING_ACCUMULATOR, mem);
+		_ASL(self, mem, NESEMU_ADDRESSING_ACCUMULATOR);
 		break;
 	case ASL_ZP:
-		_ASL(self, NESEMU_ADDRESSING_ZERO_PAGE, mem);
+		_ASL(self, mem, NESEMU_ADDRESSING_ZERO_PAGE);
 		break;
 	case ASL_ZX:
-		_ASL(self, NESEMU_ADDRESSING_ZERO_PAGE_X, mem);
+		_ASL(self, mem, NESEMU_ADDRESSING_ZERO_PAGE_X);
 		break;
 	case ASL_AB:
-		_ASL(self, NESEMU_ADDRESSING_ABSOLUTE, mem);
+		_ASL(self, mem, NESEMU_ADDRESSING_ABSOLUTE);
 		break;
 	case ASL_AX:
-		_ASL(self, NESEMU_ADDRESSING_ABSOLUTE_X, mem);
+		_ASL(self, mem, NESEMU_ADDRESSING_ABSOLUTE_X);
 		break;
 
 		// LSR
 	case LSR_ACC:
-		_LSR(self, NESEMU_ADDRESSING_ACCUMULATOR, mem);
+		_LSR(self, mem, NESEMU_ADDRESSING_ACCUMULATOR);
 		break;
 	case LSR_ZP:
-		_LSR(self, NESEMU_ADDRESSING_ZERO_PAGE, mem);
+		_LSR(self, mem, NESEMU_ADDRESSING_ZERO_PAGE);
 		break;
 	case LSR_ZX:
-		_LSR(self, NESEMU_ADDRESSING_ZERO_PAGE_X, mem);
+		_LSR(self, mem, NESEMU_ADDRESSING_ZERO_PAGE_X);
 		break;
 	case LSR_AB:
-		_LSR(self, NESEMU_ADDRESSING_ABSOLUTE, mem);
+		_LSR(self, mem, NESEMU_ADDRESSING_ABSOLUTE);
 		break;
 	case LSR_AX:
-		_LSR(self, NESEMU_ADDRESSING_ABSOLUTE_X, mem);
+		_LSR(self, mem, NESEMU_ADDRESSING_ABSOLUTE_X);
 		break;
 
 		// ROL
 	case ROL_ACC:
-		_ROL(self, NESEMU_ADDRESSING_ACCUMULATOR, mem);
+		_ROL(self, mem, NESEMU_ADDRESSING_ACCUMULATOR);
 		break;
 	case ROL_ZP:
-		_ROL(self, NESEMU_ADDRESSING_ZERO_PAGE, mem);
+		_ROL(self, mem, NESEMU_ADDRESSING_ZERO_PAGE);
 		break;
 	case ROL_ZX:
-		_ROL(self, NESEMU_ADDRESSING_ZERO_PAGE_X, mem);
+		_ROL(self, mem, NESEMU_ADDRESSING_ZERO_PAGE_X);
 		break;
 	case ROL_AB:
-		_ROL(self, NESEMU_ADDRESSING_ABSOLUTE, mem);
+		_ROL(self, mem, NESEMU_ADDRESSING_ABSOLUTE);
 		break;
 	case ROL_AX:
-		_ROL(self, NESEMU_ADDRESSING_ABSOLUTE_X, mem);
+		_ROL(self, mem, NESEMU_ADDRESSING_ABSOLUTE_X);
 		break;
 
 		// ROR
 	case ROR_ACC:
-		_ROR(self, NESEMU_ADDRESSING_ACCUMULATOR, mem);
+		_ROR(self, mem, NESEMU_ADDRESSING_ACCUMULATOR);
 		break;
 	case ROR_ZP:
-		_ROR(self, NESEMU_ADDRESSING_ZERO_PAGE, mem);
+		_ROR(self, mem, NESEMU_ADDRESSING_ZERO_PAGE);
 		break;
 	case ROR_ZX:
-		_ROR(self, NESEMU_ADDRESSING_ZERO_PAGE_X, mem);
+		_ROR(self, mem, NESEMU_ADDRESSING_ZERO_PAGE_X);
 		break;
 	case ROR_AB:
-		_ROR(self, NESEMU_ADDRESSING_ABSOLUTE, mem);
+		_ROR(self, mem, NESEMU_ADDRESSING_ABSOLUTE);
 		break;
 	case ROR_AX:
-		_ROR(self, NESEMU_ADDRESSING_ABSOLUTE_X, mem);
+		_ROR(self, mem, NESEMU_ADDRESSING_ABSOLUTE_X);
 		break;
 
 		/* Jumps & Calls */
 	case JMP_AB:
-        err = _JMP(self, mem, NESEMU_ADDRESSING_ABSOLUTE);
-        break;
+		err = _JMP(self, mem, NESEMU_ADDRESSING_ABSOLUTE);
+		break;
 
 	case JMP_IX:
-        err = _JMP(self, mem, NESEMU_ADDRESSING_INDIRECT_X);
-        break;
+		err = _JMP(self, mem, NESEMU_ADDRESSING_INDIRECT_X);
+		break;
 
-        // JSR
+	// JSR
 	case JSR:
-        err = _JSR(self, mem);
-        break;
-    
-        // RTS
+		err = _JSR(self, mem);
+		break;
+
+	// RTS
 	case RTS:
-        err = _RTS(self, mem);
-        break;
+		err = _RTS(self, mem);
+		break;
 
 		/* System Functions */
 	case BRK:
-        err = _BRK(self, mem);
-        break;
+		err = _BRK(self, mem);
+		break;
 
-        // RTI
+	// RTI
 	case RTI:
-        err = _RTI(self, mem);
-        break;
+		err = _RTI(self, mem);
+		break;
 
 		/* Branches */
 	case BCC:
@@ -1839,7 +1839,7 @@ nesemu_error_t nes_cpu_next(struct nes_cpu_t *self, nes_memory_t mem, int *c)
 		err = _CXX_SXX(self, opc);
 		break;
 
-		/* No operation */
+		/* No opeeration */
 	case NOP:
 		break;
 
