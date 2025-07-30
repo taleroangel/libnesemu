@@ -10,14 +10,14 @@
  * Bitmasks for the CPU status flags
  */
 enum cpu_status_t {
-	NESEMU_CPU_FLAGS_C = 0b00000001, /**< Carry */
-	NESEMU_CPU_FLAGS_Z = 0b00000010, /**< Zero */
-	NESEMU_CPU_FLAGS_I = 0b00000100, /**< Interrupt disable */
-	NESEMU_CPU_FLAGS_D = 0b00001000, /**< Decimal mode (No effect) */
-	NESEMU_CPU_FLAGS_B = 0b00010000, /**< Break command */
-	NESEMU_CPU_FLAGS_1 = 0b00100000, /**< Unused! */
-	NESEMU_CPU_FLAGS_V = 0b01000000, /**< Overflow */
-	NESEMU_CPU_FLAGS_N = 0b10000000, /**< Negative */
+	NESEMU_CPU_FLAGS_C = 0x01, /**< Carry */
+	NESEMU_CPU_FLAGS_Z = 0x02, /**< Zero */
+	NESEMU_CPU_FLAGS_I = 0x04, /**< Interrupt disable */
+	NESEMU_CPU_FLAGS_D = 0x08, /**< Decimal mode (No effect) */
+	NESEMU_CPU_FLAGS_B = 0x10, /**< Break */
+	NESEMU_CPU_FLAGS_1 = 0x20, /**< Unused! */
+	NESEMU_CPU_FLAGS_V = 0x40, /**< Overflow */
+	NESEMU_CPU_FLAGS_N = 0x80, /**< Negative */
 };
 
 /**
@@ -49,5 +49,11 @@ enum cpu_status_t {
  */
 #define NESEMU_CPU_STATUS_UNSET_MASK(status, mask) \
     (uint8_t)status | ~(uint8_t)mask
+
+/**
+ * Check if a flag is set
+ */
+#define NESEMU_CPU_STATUS_CHECK(status, mask) \
+    ((uint8_t)status & (uint8_t)mask) != 0
 
 #endif

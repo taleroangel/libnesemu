@@ -15,13 +15,18 @@
 /**
  * Power up state for PC register
  */
-#define NESEMU_CPU_INIT_PC 0xFFFC
+#define NESEMU_CPU_INIT_PC (uint16_t)0xFFFC
 
 /**
  * When restarting the SP should be decreased
  * by this exact amount
  */
 #define NESEMU_CPU_RESTART_SP 3
+
+/**
+ * Address to a pointer where the IRQ handler is
+ */
+#define NESEMU_CPU_IRQ_ADDR (uint16_t)0xFFFE
 
 /**
  * 6502 CPU variant
@@ -32,12 +37,16 @@
  * @note This is a little-endian processor
  */
 struct nes_cpu_t {
+    /* Registers */
 	uint16_t pc; /**< Program Counter */
 	uint8_t sp; /**< Stack Pointer */
 	uint8_t a; /**< Accumulator */
 	uint8_t x; /**< Index Register X */
 	uint8_t y; /**< Index Register Y */
 	uint8_t status; /**< Processor Status */
+
+    /* Support */
+    uint8_t brkr; /**< BRK Reason */
 };
 
 /**

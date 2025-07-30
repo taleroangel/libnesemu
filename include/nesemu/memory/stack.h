@@ -33,21 +33,39 @@
 #endif
 
 /**
- * Push a byte to the stack
+ * Push a word to the stack
  *
  * @param mem Memory array
  * @param sp Reference to the stack pointer
  * @param value Value to be pushed
  */
-nesemu_error_t nes_stack_push(nes_memory_t mem, uint8_t *sp, uint8_t value);
+nesemu_error_t nes_stack_push_u8(nes_memory_t mem, uint8_t *sp, uint8_t value);
 
 /**
- * Pull a byte from the stack
+ * Pull a word from the stack
  * 
  * @param mem Memory array
  * @param sp Reference to the stack pointer
  * @param value Reference where the value will be stored 
  */
-nesemu_error_t nes_stack_pop(nes_memory_t mem, uint8_t *sp, uint8_t *result);
+nesemu_error_t nes_stack_pop_u8(nes_memory_t mem, uint8_t *sp, uint8_t *result);
+
+/**
+ * Push a dword to the stack
+ *
+ * @param mem Memory array
+ * @param sp Reference to the stack pointer
+ * @param value Value to be pushed
+ */
+nesemu_error_t nes_stack_push_u16(nes_memory_t mem, uint8_t *sp, uint16_t value);
+
+/**
+ * Pull a dword from the stack
+ * 
+ * @param mem Memory array
+ * @param sp Reference to the stack pointer
+ * @param value Reference where the value will be stored 
+ */
+nesemu_error_t nes_stack_pop_u16(nes_memory_t mem, uint8_t *sp, uint16_t *result);
 
 #endif

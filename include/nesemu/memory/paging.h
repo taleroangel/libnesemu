@@ -12,7 +12,7 @@
 /**
  * Transform a zeropage address into a raw memory address
  */
-#define NESEMU_ZEROPAGE_GET_ADDR(addr) (uint16_t)(0x00FF & addr)
+#define NESEMU_ZEROPAGE_GET_ADDR(addr) (uint16_t)(0x00FF & (addr))
 
 /**
  * Check if an address is page crossed

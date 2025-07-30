@@ -10,6 +10,8 @@ project(
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_C_STANDARD_REQUIRED ON)
 
+add_compile_options(-Wall -Wextra -pedantic -Wimplicit-fallthrough)
+
 # Project properties
 if(NESEMU_DISABLE_SAFETY_CHECKS)
   add_definitions(-DCONFIG_NESEMU_DISABLE_SAFETY_CHECKS)
