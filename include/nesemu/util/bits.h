@@ -7,6 +7,6 @@
  * Build a dword value using two words
  */
 #define NESEMU_UTIL_U16(msb, lsb) \
-    (uint16_t)(((uint16_t)msb << 8) | (uint16_t)lsb)
+	(uint16_t)(((uint16_t)msb << 8) | (uint16_t)lsb)
 
 #endif

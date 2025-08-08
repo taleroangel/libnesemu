@@ -1,53 +1,112 @@
 #include "nesemu/memory/memory.h"
+#include "nesemu/cartridge/types/common.h"
+
 #include "nesemu/util/error.h"
+#include "nesemu/util/bits.h"
 
 #include <stddef.h>
 #include <stdint.h>
+#include <string.h>
 
-nesemu_error_t nes_mem_w8(nes_memory_t mem, uint16_t addr, uint8_t data)
+inline nesemu_error_t nes_mem_reset(struct nes_main_memory_t *mem)
 {
-    mem[addr] = data;
+	memset(mem, 0, sizeof(struct nes_main_memory_t));
 	return NESEMU_RETURN_SUCCESS;
 }
 
-nesemu_error_t nes_mem_r8(nes_memory_t mem, uint16_t addr, uint8_t *result)
+nesemu_error_t nes_mem_w8(struct nes_main_memory_t *mem,
+			  uint16_t addr,
+			  uint8_t data)
 {
-#ifndef CONFIG_NESEMU_DISABLE_SAFETY_CHECKS
-	if (result == NULL) {
-		return NESEMU_RETURN_BAD_ARGUMENTS;
+	// RAM mirroring
+	if ((addr >= NESEMU_MEMORY_RAM_MIRRORING_RANGE_START) &&
+	    (addr <= NESEMU_MEMORY_RAM_MIRRORING_RANGE_END)) {
+		// Address modulo with base should give the target address
+		mem->_raw[addr % NESEMU_MEMORY_RAM_MIRRORING_BASE] = data;
 	}
-#endif
-	*result = mem[addr];
+
+	// TODO PPU mirroring
+
+	// Cartridge mirroring
+	else if (addr >= NESEMU_CARTRIDGE_ADDR_BEGIN) {
+		return nes_mem_cartridge_write(mem, addr, data);
+	}
+
+	// Regular address
+	else {
+		mem->_raw[addr] = data;
+	}
+
 	return NESEMU_RETURN_SUCCESS;
 }
 
-nesemu_error_t nes_mem_w16(nes_memory_t mem, uint16_t addr, uint16_t data)
+nesemu_error_t nes_mem_r8(struct nes_main_memory_t *mem,
+			  uint16_t addr,
+			  uint8_t *result)
 {
-#ifndef CONFIG_NESEMU_DISABLE_SAFETY_CHECKS
-	if (addr == (NESEMU_MEMORY_SIZE - 1)) {
-		return NESEMU_RETURN_MEMORY_INVALILD_ADDR;
+	// RAM mirroring
+	if ((addr >= NESEMU_MEMORY_RAM_MIRRORING_RANGE_START) &&
+	    (addr <= NESEMU_MEMORY_RAM_MIRRORING_RANGE_END)) {
+		// Address modulo with base should give the target address
+		*result = mem->_raw[addr % NESEMU_MEMORY_RAM_MIRRORING_BASE];
 	}
-#endif
-    // LSB
-	mem[addr] = (uint8_t)((data & 0xFF00) >> 8);
-    // MSB
-	mem[addr + 1] = (uint8_t)(data & 0x00FF);
+
+	// TODO PPU mirroring
+
+	// Cartridge mirroring
+	else if (addr >= NESEMU_CARTRIDGE_ADDR_BEGIN) {
+		return nes_mem_cartridge_read(mem, addr, result);
+	}
+
+	// Regular address
+	else {
+		*result = mem->_raw[addr];
+	}
+
 	return NESEMU_RETURN_SUCCESS;
 }
 
-nesemu_error_t nes_mem_r16(nes_memory_t mem, uint16_t addr, uint16_t *result)
+nesemu_error_t nes_mem_w16(struct nes_main_memory_t *mem,
+			   uint16_t addr,
+			   uint16_t data)
 {
-#ifndef CONFIG_NESEMU_DISABLE_SAFETY_CHECKS
-	if (result == NULL) {
-		return NESEMU_RETURN_BAD_ARGUMENTS;
+	// Decompose u16 into two u8
+	uint8_t msb = (data & 0xFF00) >> 8, lsb = (data & 0x00FF);
+
+	// Write LSB
+	nesemu_error_t err;
+	if ((err = nes_mem_w8(mem, addr, lsb)) != NESEMU_RETURN_SUCCESS) {
+		return err;
 	}
-	if (addr == (NESEMU_MEMORY_SIZE - 1)) {
-		return NESEMU_RETURN_MEMORY_INVALILD_ADDR;
+
+	// Write next (MSB)
+	if ((err = nes_mem_w8(mem, addr + 1, msb)) != NESEMU_RETURN_SUCCESS) {
+		return err;
 	}
-#endif
-    // LSB
-	*result = mem[addr];
-    // MSB 
-	*result |= (uint16_t)mem[addr + 1] << 8;
+
+	return NESEMU_RETURN_SUCCESS;
+}
+
+nesemu_error_t nes_mem_r16(struct nes_main_memory_t *mem,
+			   uint16_t addr,
+			   uint16_t *result)
+{
+	// Get the two placeholder bytes
+	uint8_t lsb, msb;
+
+	// Get LSB
+	nesemu_error_t err;
+	if ((err = nes_mem_r8(mem, addr, &lsb)) != NESEMU_RETURN_SUCCESS) {
+		return err;
+	}
+
+	// Get next (MSB)
+	if ((err = nes_mem_r8(mem, addr + 1, &msb)) != NESEMU_RETURN_SUCCESS) {
+		return err;
+	}
+
+	// Build u16 from two u8
+	*result = NESEMU_UTIL_U16(msb, lsb);
+
 	return NESEMU_RETURN_SUCCESS;
 }

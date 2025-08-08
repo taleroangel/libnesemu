@@ -34,6 +34,7 @@ if(NESEMU_BUILD_EMULATOR)
 endif()
 
 # Tests
-if(NESEMU_UNIT_TEST)
+if(NESEMU_BUILD_TESTS)
+  enable_testing()
   add_subdirectory(tests)
 endif()
