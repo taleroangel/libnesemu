@@ -43,8 +43,8 @@ struct nes_cpu_t {
 	uint8_t status; /**< Processor Status */
 
 	/* Support */
-	bool brk; /**< Break! Stop execution */
-	uint8_t bcode; /**< BRK Reason */
+	bool stop; /**< Stop execution flag (use STP instruction) */
+	uint8_t brk; /**< BRK Reason */
 };
 
 /**

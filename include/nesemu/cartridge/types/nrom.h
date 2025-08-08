@@ -12,33 +12,24 @@
  * NROM cartridge memory layout
  */
 struct nes_ines_nrom_cartridge_t {
-	uint8_t bank[NESEMU_CARTRIDGE_BANK_SIZE]; /**< Only memory bank in cartridge */
+	/**
+     * Single memory bank for PRGROM in the cartridge.
+     * Use `__NESEMU_CARTRIDGE_NROM_GET_ADDR` to map addresses to this array
+     */
+	uint8_t prgrom[NESEMU_CARTRIDGE_BANK_SIZE];
 };
 
 nesemu_error_t nes_ines_nrom_cpu_loader(nesemu_mapper_generic_ref_t self,
 					uint8_t *cdata,
-					size_t len)
-{
-	// Create a reference to `nes_ines_nrom_cartridge_t` called `this`
-	NESEMU_CARTRIDGE_DEFINE_GENERIC_TYPE(
-		this, struct nes_ines_nrom_cartridge_t, self);
-
-	// Copy memory from cartridge into `this`
-	(void)memcpy(this->bank, cdata, len);
-	return NESEMU_RETURN_SUCCESS;
-}
+					size_t len);
 
 nesemu_error_t nes_ines_nrom_cpu_reader(nesemu_mapper_generic_ref_t self,
 					uint16_t addr,
-					uint8_t *content)
-{
-}
+					uint8_t *content);
 
 nesemu_error_t nes_ines_nrom_cpu_writer(nesemu_mapper_generic_ref_t self,
 
 					uint16_t addr,
-					uint8_t content)
-{
-}
+					uint8_t content);
 
 #endif

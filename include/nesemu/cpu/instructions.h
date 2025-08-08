@@ -246,6 +246,9 @@ enum nes_cpu_instructions_t {
 	BRK = 0x00,
 	NOP = 0xEA,
 	RTI = 0x40,
+
+    /* Unofficial Opcodes */
+    STP = 0xDB,
 };
 
 #endif

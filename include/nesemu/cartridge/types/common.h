@@ -17,6 +17,16 @@
 #define NESEMU_CARTRIDGE_ADDR_BEGIN 0x4020
 
 /**
+ * Initial address for the cartridge RAM
+ */
+#define NESEMU_CARTRIDGE_RAM_BEGIN 0x6000
+
+/**
+ * Initial address for the cartridge ROM
+ */
+#define NESEMU_CARTRIDGE_ROM_BEGIN 0x8000
+
+/**
  * Total size of the addresable space
  */
 #define NESEMU_CARTRIDGE_ADDR_SIZE 0xBFE0

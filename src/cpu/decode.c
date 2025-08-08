@@ -1194,8 +1194,7 @@ static nesemu_error_t _BRK(struct nes_cpu_t *self,
 			   struct nes_main_memory_t *mem)
 {
 	// Store break reason
-	self->bcode = nes_cpu_fetch(self, mem);
-	self->brk = true;
+	self->brk = nes_cpu_fetch(self, mem);
 
 	// Push program counter
 	nesemu_error_t err = NESEMU_RETURN_SUCCESS;
@@ -1239,6 +1238,12 @@ static nesemu_error_t _RTI(struct nes_cpu_t *self,
 	// Pull program counter
 	err = nes_stack_pop_u16(mem, &self->sp, &self->pc);
 	return err;
+}
+
+static inline void _STP(struct nes_cpu_t *self)
+{
+	// Set stop flag
+	self->stop = true;
 }
 
 /* Public Functions */
@@ -1775,6 +1780,11 @@ nesemu_error_t nes_cpu_next(struct nes_cpu_t *self,
 
 		/* No opeeration */
 	case NOP:
+		break;
+
+		/* WDC Extensions */
+	case STP:
+		_STP(self);
 		break;
 
 		/* Instruction not found */

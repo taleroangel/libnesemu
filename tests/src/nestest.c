@@ -22,6 +22,14 @@
 #define PATH_MAX 4096
 
 /**
+ * Initial $pc address for the headless CPU test
+ *
+ * Check details at:
+ * https://www.qmtpro.com/~nes/misc/nestest.txt
+ */
+#define START_PC 0xC000
+
+/**
  * Read cartridge from FS into cdata
  *
  * @note cdata contents are allocated with 'malloc'
@@ -31,7 +39,7 @@ int read_cartridge(uint8_t **cdata, size_t *len);
 /**
  * Run the test with already initialized hardware
  */
-int run(nes_main_memory_t mem, struct nes_cpu_t *cpu);
+int run(struct nes_main_memory_t *mem, struct nes_cpu_t *cpu);
 
 /* Entry point */
 
@@ -50,8 +58,8 @@ int main(void)
 	/* -- Memory initialization -- */
 
 	// Initialize memory
-	nes_main_memory_t mem;
-	err = nes_mem_reset(mem);
+	struct nes_main_memory_t mem;
+	err = nes_mem_reset(&mem);
 	if (err != NESEMU_RETURN_SUCCESS) {
 		fprintf(stderr,
 			"nesemu memory initialization failed with code (0x%x)\n",
@@ -72,7 +80,8 @@ int main(void)
 	}
 
 	// Load cartridge
-	if (nes_read_ines(mem, cdata, clen) != NESEMU_RETURN_SUCCESS) {
+	if (nes_read_ines(&mem.cartridge, cdata, clen) !=
+	    NESEMU_RETURN_SUCCESS) {
 		// Deallocate file data
 		free(cdata);
 		cdata = NULL;
@@ -90,9 +99,9 @@ int main(void)
 
 	printf("Successful NESEMU cartridge initialization\n");
 
-    /* -- CPU Initialization -- */
+	/* -- CPU Initialization -- */
 	struct nes_cpu_t cpu;
-	err = nes_cpu_init(&cpu, mem);
+	err = nes_cpu_init(&cpu, &mem);
 	if (err != NESEMU_RETURN_SUCCESS) {
 		fprintf(stderr,
 			"nesemu cpu initialization failed with code (0x%x)\n",
@@ -100,10 +109,10 @@ int main(void)
 		return EXIT_FAILURE;
 	}
 
-    printf("Successful NESEMU cpu initialization\n");
+	printf("Successful NESEMU cpu initialization\n");
 
 	/* -- Run -- */
-	if (run(mem, &cpu) != EXIT_SUCCESS) {
+	if (run(&mem, &cpu) != EXIT_SUCCESS) {
 		return EXIT_FAILURE;
 	}
 
@@ -112,13 +121,16 @@ int main(void)
 	return EXIT_SUCCESS;
 }
 
-int run(nes_main_memory_t mem, struct nes_cpu_t *cpu)
+int run(struct nes_main_memory_t *mem, struct nes_cpu_t *cpu)
 {
 	nesemu_error_t err = NESEMU_RETURN_SUCCESS;
-	long int tcycles = 0;
+	long int tcycles = 0, tinstructions = 0;
+
+	// Set program counter
+	cpu->pc = START_PC;
 
 	// Infinite execution loop
-	while (!cpu->brk) {
+	while (!cpu->stop) {
 		// Execute next instruction
 		int cpu_cycles = 0;
 		err = nes_cpu_next(cpu, mem, &cpu_cycles);
@@ -128,10 +140,11 @@ int run(nes_main_memory_t mem, struct nes_cpu_t *cpu)
 
 		// Add to the total execution count
 		tcycles += cpu_cycles;
-	};
+		tinstructions++;
+	}
 
-	printf("CPU execution completed with a total of (%ld) cycles\n",
-	       tcycles);
+	printf("CPU execution completed (Cycles=%ld, Instructions=%ld, $pc=0x%04x, $brk=0x%02x)\n",
+	       tcycles, tinstructions, cpu->pc, cpu->brk);
 
 	// Return error
 	if (err != NESEMU_RETURN_SUCCESS) {
@@ -140,9 +153,22 @@ int run(nes_main_memory_t mem, struct nes_cpu_t *cpu)
 		return EXIT_FAILURE;
 	}
 
+	// Read error codes
+	uint8_t err0 = 0, err1 = 0;
+	if ((err = nes_mem_r8(mem, 0x0002, &err0)) != NESEMU_RETURN_SUCCESS) {
+		printf("failed to read memory at $0002");
+		return EXIT_FAILURE;
+	}
+
+	if ((err = nes_mem_r8(mem, 0x0003, &err1)) != NESEMU_RETURN_SUCCESS) {
+		printf("failed to read memory at $0003");
+		return EXIT_FAILURE;
+	}
+
 	// nestest Error
-	if (cpu->bcode != 0x00) {
-		printf("BRK = (0x%04x)\n", cpu->bcode);
+	if (cpu->brk != 0x00 || err0 != 0 || err1 != 0) {
+		printf("nestest failure ($brk=0x%04x, $02=%02x, $03=%02x)\n",
+		       cpu->brk, err0, err1);
 		return EXIT_FAILURE;
 	}
 

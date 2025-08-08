@@ -26,4 +26,9 @@
 		int __foo; \
 	}
 
+/**
+ * Declare an argument as unused
+ */
+#define _NESEMU_UNUSED(x) (void)x
+
 #endif

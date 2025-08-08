@@ -112,11 +112,11 @@ static inline nesemu_error_t nes_mem_cartridge_read(
 	uint8_t *value)
 {
 #ifndef CONFIG_NESEMU_DISABLE_SAFETY_CHECKS
-	if (mem->cartridge.reader == NULL) {
+	if (mem->cartridge.cpu_reader == NULL) {
 		return NESEMU_RETURN_MEMORY_PRGROM_NO_DATA;
 	}
 #endif
-	return mem->cartridge.reader(
+	return mem->cartridge.cpu_reader(
 		NESEMU_CARTRIDGE_GET_MAPPER_GENERIC_REF(mem->cartridge), addr,
 		value);
 }
@@ -130,11 +130,11 @@ static inline nesemu_error_t nes_mem_cartridge_write(
 	uint8_t value)
 {
 #ifndef CONFIG_NESEMU_DISABLE_SAFETY_CHECKS
-	if (mem->cartridge.writer == NULL) {
+	if (mem->cartridge.cpu_writer == NULL) {
 		return NESEMU_RETURN_MEMORY_PRGROM_NO_DATA;
 	}
 #endif
-	return mem->cartridge.writer(
+	return mem->cartridge.cpu_writer(
 		NESEMU_CARTRIDGE_GET_MAPPER_GENERIC_REF(mem->cartridge), addr,
 		value);
 }
