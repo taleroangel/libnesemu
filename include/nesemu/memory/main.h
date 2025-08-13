@@ -17,9 +17,9 @@
 #define NESEMU_MEMORY_MAIN_SIZE 0x4020
 
 /**
- * Base memory mirroring range end (exclusive)
+ * Base memory mirroring range end (inclusive)
  */
-#define NESEMU_MEMORY_RAM_MIRRORING_RANGE_START 0x07FF
+#define NESEMU_MEMORY_RAM_MIRRORING_RANGE_START 0x0800
 
 /**
  * Base memory mirroring range end (inclusive)
@@ -27,12 +27,33 @@
 #define NESEMU_MEMORY_RAM_MIRRORING_RANGE_END 0x17FF
 
 /**
- * Address mirroring base for addresses
- *      - 0x0000-0x07FF -> 0x0800-0x0FFF
+ * Address mirroring base for modulo operator
+ *                      -> 0x0000-0x07FF
  *      - 0x0800-0x0FFF
  *      - 0x1000-0x17FF
+ *      - 0x1800-0x1FFF
  */
 #define NESEMU_MEMORY_RAM_MIRRORING_BASE 0x800
+
+/**
+ * PPU register mirroring range start (inclusive)
+ */
+#define NESEMU_MEMORY_RAM_PPU_REG_MIRRORING_RANGE_START 0x2008
+
+/**
+ * PPU register mirroring range end (inclusive)
+ */
+#define NESEMU_MEMORY_RAM_PPU_REG_MIRRORING_RANGE_END 0x3FFF
+
+/**
+ * Address modulo for PPU register mirroring
+ */
+#define NESEMU_MEMORY_RAM_PPU_REG_MIRRORING_BASE 0x8
+
+/**
+ * Base address for PPU register mirroring
+ */
+#define NESEMU_MEMORY_RAM_PPU_REG_MIRRORING_ADDR 0x2000
 
 /**
  * 16-bit addressable main memory
@@ -42,12 +63,12 @@ struct nes_main_memory_t {
 	/**
      * Raw memory array. Should not be accessed directly.
      *
-     * This only contains console internal memory structure.
+     * This only contains console internal memory structure ($0000-$401F).
      * Any fields mapped to cartridge are left out and r/w operations
      * are delegated to the cartridge structure instead.
      *
      * That is the reason why the size of this array is smaller than
-     * the NES memory addressing
+     * the NES memory addressing.
      */
 	uint8_t _data[NESEMU_MEMORY_MAIN_SIZE];
 

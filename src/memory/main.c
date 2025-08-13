@@ -18,24 +18,31 @@ nesemu_error_t nes_mem_w8(struct nes_main_memory_t *mem,
 			  uint16_t addr,
 			  uint8_t data)
 {
-	// RAM mirroring
-	if ((addr >= NESEMU_MEMORY_RAM_MIRRORING_RANGE_START) &&
-	    (addr <= NESEMU_MEMORY_RAM_MIRRORING_RANGE_END)) {
-		// Address modulo with base should give the target address
-		mem->_data[addr % NESEMU_MEMORY_RAM_MIRRORING_BASE] = data;
-	}
-
-	// TODO PPU mirroring
-
-	// Cartridge mirroring
-	else if (addr >= NESEMU_CARTRIDGE_ADDR_BEGIN) {
+	// Cartridge address, delegate to cartridge callback
+	if (addr >= NESEMU_CARTRIDGE_ADDR_BEGIN) {
+		// ! Must return, the callback should handle the logic
 		return nes_mem_cartridge_write(mem, addr, data);
 	}
 
-	// Regular address
-	else {
-		mem->_data[addr] = data;
+	//! Change the address based on mirroring rules
+
+	// RAM mirroring
+	else if ((addr >= NESEMU_MEMORY_RAM_MIRRORING_RANGE_START) &&
+		 (addr <= NESEMU_MEMORY_RAM_MIRRORING_RANGE_END)) {
+		// Address modulo with base should give the target address
+		addr = addr % NESEMU_MEMORY_RAM_MIRRORING_BASE;
 	}
+
+	// PPU mirroring
+	else if ((addr >= NESEMU_MEMORY_RAM_PPU_REG_MIRRORING_RANGE_START) &&
+		 (addr <= NESEMU_MEMORY_RAM_PPU_REG_MIRRORING_RANGE_END)) {
+		// Address modulo with base + addr should give the target address
+		addr = (addr % NESEMU_MEMORY_RAM_PPU_REG_MIRRORING_BASE) +
+		       NESEMU_MEMORY_RAM_PPU_REG_MIRRORING_ADDR;
+	}
+
+	// Write data to target address
+	mem->_data[addr] = data;
 
 	return NESEMU_RETURN_SUCCESS;
 }
@@ -44,24 +51,31 @@ nesemu_error_t nes_mem_r8(struct nes_main_memory_t *mem,
 			  uint16_t addr,
 			  uint8_t *result)
 {
-	// RAM mirroring
-	if ((addr >= NESEMU_MEMORY_RAM_MIRRORING_RANGE_START) &&
-	    (addr <= NESEMU_MEMORY_RAM_MIRRORING_RANGE_END)) {
-		// Address modulo with base should give the target address
-		*result = mem->_data[addr % NESEMU_MEMORY_RAM_MIRRORING_BASE];
-	}
-
-	// TODO PPU mirroring
-
-	// Cartridge mirroring
-	else if (addr >= NESEMU_CARTRIDGE_ADDR_BEGIN) {
+	// Cartridge address, delegate to cartridge callback
+	if (addr >= NESEMU_CARTRIDGE_ADDR_BEGIN) {
+		// ! Must return, the callback should handle the logic
 		return nes_mem_cartridge_read(mem, addr, result);
 	}
 
-	// Regular address
-	else {
-		*result = mem->_data[addr];
+	//! Change the address based on mirroring rules
+
+	// RAM mirroring
+	else if ((addr >= NESEMU_MEMORY_RAM_MIRRORING_RANGE_START) &&
+		 (addr <= NESEMU_MEMORY_RAM_MIRRORING_RANGE_END)) {
+		// Address modulo with base should give the target address
+		addr = addr % NESEMU_MEMORY_RAM_MIRRORING_BASE;
 	}
+
+	// PPU mirroring
+	else if ((addr >= NESEMU_MEMORY_RAM_PPU_REG_MIRRORING_RANGE_START) &&
+		 (addr <= NESEMU_MEMORY_RAM_PPU_REG_MIRRORING_RANGE_END)) {
+		// Address modulo with base + addr should give the target address
+		addr = (addr % NESEMU_MEMORY_RAM_PPU_REG_MIRRORING_BASE) +
+		       NESEMU_MEMORY_RAM_PPU_REG_MIRRORING_ADDR;
+	}
+
+	// Read data to target address
+	*result = mem->_data[addr];
 
 	return NESEMU_RETURN_SUCCESS;
 }

@@ -53,3 +53,15 @@ inline nesemu_error_t nes_ines_nrom_cpu_writer(nesemu_mapper_generic_ref_t self,
 
 	return NESEMU_RETURN_CARTRIDGE_READ_ONLY;
 }
+
+nesemu_error_t nes_ines_nrom_ppu_loader(nesemu_mapper_generic_ref_t self,
+					uint8_t *cdata,
+					size_t len);
+
+nesemu_error_t nes_ines_nrom_ppu_reader(nesemu_mapper_generic_ref_t self,
+					uint16_t addr,
+					uint8_t *content);
+
+nesemu_error_t nes_ines_nrom_ppu_writer(nesemu_mapper_generic_ref_t self,
+					uint16_t addr,
+					uint8_t content);

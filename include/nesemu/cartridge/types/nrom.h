@@ -28,7 +28,6 @@ nesemu_error_t nes_ines_nrom_cpu_reader(nesemu_mapper_generic_ref_t self,
 					uint8_t *content);
 
 nesemu_error_t nes_ines_nrom_cpu_writer(nesemu_mapper_generic_ref_t self,
-
 					uint16_t addr,
 					uint8_t content);
 
