@@ -9,7 +9,7 @@
 #define __NESEMU_CARTRIDGE_NROM_GET_ADDR(addr) \
 	(addr % NESEMU_CARTRIDGE_BANK_SIZE)
 
-nesemu_error_t nes_ines_nrom_cpu_loader(nesemu_mapper_generic_ref_t self,
+nesemu_error_t nes_ines_nrom_prg_loader(nesemu_mapper_generic_ref_t self,
 					uint8_t *cdata,
 					size_t len)
 {
@@ -22,7 +22,7 @@ nesemu_error_t nes_ines_nrom_cpu_loader(nesemu_mapper_generic_ref_t self,
 	return NESEMU_RETURN_SUCCESS;
 }
 
-nesemu_error_t nes_ines_nrom_cpu_reader(nesemu_mapper_generic_ref_t self,
+nesemu_error_t nes_ines_nrom_prg_reader(nesemu_mapper_generic_ref_t self,
 					uint16_t addr,
 					uint8_t *content)
 {
@@ -43,7 +43,7 @@ nesemu_error_t nes_ines_nrom_cpu_reader(nesemu_mapper_generic_ref_t self,
 	return NESEMU_RETURN_SUCCESS;
 }
 
-inline nesemu_error_t nes_ines_nrom_cpu_writer(nesemu_mapper_generic_ref_t self,
+inline nesemu_error_t nes_ines_nrom_prg_writer(nesemu_mapper_generic_ref_t self,
 					       uint16_t addr,
 					       uint8_t content)
 {
@@ -54,14 +54,20 @@ inline nesemu_error_t nes_ines_nrom_cpu_writer(nesemu_mapper_generic_ref_t self,
 	return NESEMU_RETURN_CARTRIDGE_READ_ONLY;
 }
 
-nesemu_error_t nes_ines_nrom_ppu_loader(nesemu_mapper_generic_ref_t self,
+nesemu_error_t nes_ines_nrom_chr_loader(nesemu_mapper_generic_ref_t self,
 					uint8_t *cdata,
-					size_t len);
+					size_t len) 
+{
+}
 
-nesemu_error_t nes_ines_nrom_ppu_reader(nesemu_mapper_generic_ref_t self,
+nesemu_error_t nes_ines_nrom_chr_reader(nesemu_mapper_generic_ref_t self,
 					uint16_t addr,
-					uint8_t *content);
+					uint8_t *content)
+{
+}
 
-nesemu_error_t nes_ines_nrom_ppu_writer(nesemu_mapper_generic_ref_t self,
+nesemu_error_t nes_ines_nrom_chr_writer(nesemu_mapper_generic_ref_t self,
 					uint16_t addr,
-					uint8_t content);
+					uint8_t content)
+{
+}

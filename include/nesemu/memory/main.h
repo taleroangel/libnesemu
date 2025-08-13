@@ -14,7 +14,12 @@
 /**
  * Size of the CPU memory. Excluding cartridge
  */
-#define NESEMU_MEMORY_MAIN_SIZE 0x4020
+#define NESEMU_MEMORY_RAM_SIZE 0x4020
+
+/**
+ * Initial address for the cartridge addressing
+ */
+#define NESEMU_MEMORY_RAM_CARTRIDGE_BEGIN 0x4020
 
 /**
  * Base memory mirroring range end (inclusive)
@@ -57,7 +62,7 @@
 
 /**
  * 16-bit addressable main memory
- * Functions related to this memory type name it `mem`
+ * Functions related to this memory type are named with `mem`
  */
 struct nes_main_memory_t {
 	/**
@@ -68,9 +73,12 @@ struct nes_main_memory_t {
      * are delegated to the cartridge structure instead.
      *
      * That is the reason why the size of this array is smaller than
-     * the NES memory addressing.
+     * the addressable space.
+     *
+     * Memory addresses above $401F should delegate r/w operations to the
+     * cartridge `cpu callbacks`.
      */
-	uint8_t _data[NESEMU_MEMORY_MAIN_SIZE];
+	uint8_t _data[NESEMU_MEMORY_RAM_SIZE];
 
 	/**
      * Game cartridge. Should already be initialized
@@ -136,11 +144,11 @@ static inline nesemu_error_t nes_mem_cartridge_read(
 	uint8_t *value)
 {
 #ifndef CONFIG_NESEMU_DISABLE_SAFETY_CHECKS
-	if (mem->cartridge.cpu_reader == NULL) {
+	if (mem->cartridge.prg_read_fn == NULL) {
 		return NESEMU_RETURN_MEMORY_PRGROM_NO_DATA;
 	}
 #endif
-	return mem->cartridge.cpu_reader(
+	return mem->cartridge.prg_read_fn(
 		NESEMU_CARTRIDGE_GET_MAPPER_GENERIC_REF(mem->cartridge), addr,
 		value);
 }
@@ -154,11 +162,11 @@ static inline nesemu_error_t nes_mem_cartridge_write(
 	uint8_t value)
 {
 #ifndef CONFIG_NESEMU_DISABLE_SAFETY_CHECKS
-	if (mem->cartridge.cpu_writer == NULL) {
+	if (mem->cartridge.prg_write_fn == NULL) {
 		return NESEMU_RETURN_MEMORY_PRGROM_NO_DATA;
 	}
 #endif
-	return mem->cartridge.cpu_writer(
+	return mem->cartridge.prg_write_fn(
 		NESEMU_CARTRIDGE_GET_MAPPER_GENERIC_REF(mem->cartridge), addr,
 		value);
 }

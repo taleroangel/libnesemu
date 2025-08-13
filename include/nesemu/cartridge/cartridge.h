@@ -80,13 +80,13 @@ struct nes_cartridge_t {
 	union nes_ines_mapper_t mapper; /**< Variant type */
 
 	/* -- Mapper Callbacks -- */
-	nes_cartridge_read_t cpu_reader; /**< Method to read program data from cartridge */
-	nes_cartridge_write_t cpu_writer; /**< Method to write program data into cartridge */
-	nes_cartridge_loader_t cpu_loader; /**< Method to load program data into the cartridge struct */
+	nes_cartridge_read_t prg_read_fn; /**< Method to read program data from cartridge */
+	nes_cartridge_write_t prg_write_fn; /**< Method to write program data into cartridge */
+	nes_cartridge_loader_t prg_load_fn; /**< Method to load program data into the cartridge struct */
 
-	nes_cartridge_read_t ppu_reader; /**< Method to read from cartridge's chrrom/chrram */
-	nes_cartridge_write_t ppu_writer; /**< Method to write into cartridge's chrram */
-	nes_cartridge_loader_t ppu_loader; /**< Method to load video data into the cartridge struct */
+	nes_cartridge_read_t chr_read_fn; /**< Method to read from cartridge's chrrom/chrram */
+	nes_cartridge_write_t chr_write_fn; /**< Method to write into cartridge's chrram */
+	nes_cartridge_loader_t chr_load_fn; /**< Method to load video data into the cartridge struct */
 };
 
 /**

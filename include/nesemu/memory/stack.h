@@ -29,7 +29,7 @@
 #define NESEMU_STACK_SIZE 0xFF
 
 /* Check memory mappings */
-#if NESEMU_MEMORY_MAIN_SIZE < (NESEMU_STACK_BASE_ADDR + NESEMU_STACK_SIZE)
+#if NESEMU_MEMORY_RAM_SIZE < (NESEMU_STACK_BASE_ADDR + NESEMU_STACK_SIZE)
 #error "Memory is not big enough to host stack, check stack and memory mappings"
 #endif
 

@@ -1,5 +1,4 @@
 #include "nesemu/memory/main.h"
-#include "nesemu/cartridge/types/common.h"
 
 #include "nesemu/util/error.h"
 #include "nesemu/util/bits.h"
@@ -19,7 +18,7 @@ nesemu_error_t nes_mem_w8(struct nes_main_memory_t *mem,
 			  uint8_t data)
 {
 	// Cartridge address, delegate to cartridge callback
-	if (addr >= NESEMU_CARTRIDGE_ADDR_BEGIN) {
+	if (addr >= NESEMU_MEMORY_RAM_CARTRIDGE_BEGIN) {
 		// ! Must return, the callback should handle the logic
 		return nes_mem_cartridge_write(mem, addr, data);
 	}
@@ -52,7 +51,7 @@ nesemu_error_t nes_mem_r8(struct nes_main_memory_t *mem,
 			  uint8_t *result)
 {
 	// Cartridge address, delegate to cartridge callback
-	if (addr >= NESEMU_CARTRIDGE_ADDR_BEGIN) {
+	if (addr >= NESEMU_MEMORY_RAM_CARTRIDGE_BEGIN) {
 		// ! Must return, the callback should handle the logic
 		return nes_mem_cartridge_read(mem, addr, result);
 	}

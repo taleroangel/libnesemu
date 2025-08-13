@@ -8,31 +8,44 @@
 /**
  * Real size for the PPU memory, excluding cartridge and mirroring
  */
-#define NESEMU_MEMORY_VIDEO_SIZE 0x20
+#define NESEMU_MEMORY_VRAM_SIZE 0x20
 
 /**
  * Size of the total addressable space.
  */
-#define NESEMU_MEMORY_VIDEO_ADDR_SIZE 0x4000
+#define NESEMU_MEMORY_VRAM_ADDR_SIZE 0x4000
+
+/**
+ * Final address for the cartridge addressing (inclusive)
+ */
+#define NESEMU_MEMORY_VRAM_CARTRIDGE_END 0x3EFF
+
+/**
+ * Address modulo.
+ *
+ * Because the actual data starts from $0 instead of $3F00, a modulo is used.
+ * This also works for mirrors.
+ */
+#define NESEMU_MEMORY_VRAM_BASE 0x20
 
 /**
  * 16-bit addressable video memory.
- * Functions related to this memory type name it `chr`
+ * Functions related to this memory type are named with `chr`
  */
 struct nes_video_memory_t {
 	/**
      * Raw memory array. Should not be accessed directly
      *
-     * This contains only addresses between 0x3F00-0x3F1F.
-     * This is because this is the only real memory within the console,
+     * This contains only addresses mapped by the PPU directly ($3F00-$3F1F).
+     * This is because this is the only real vram within the console hardware,
      * $0000-$3EFF is mapped to cartridge and $3F20-$3FFF is mirrored.
      * this is why the size of the array is smaller compared to the
      * addressable space.
      *
-     * Memory addresses below 0x3F00 should delegate r/w operations to the
-     * cartridge `chr callbacks`.
+     * Memory addresses below $3F00 should delegate r/w operations to the
+     * cartridge `ppu callbacks`.
      */
-	uint8_t _data[NESEMU_MEMORY_VIDEO_SIZE];
+	uint8_t _data[NESEMU_MEMORY_VRAM_SIZE];
 
 	/**
      * Game cartridge. Should already be initialized
@@ -98,11 +111,11 @@ static inline nesemu_error_t nes_chr_cartridge_read(
 	uint8_t *value)
 {
 #ifndef CONFIG_NESEMU_DISABLE_SAFETY_CHECKS
-	if (mem->cartridge.cpu_reader == NULL) {
+	if (mem->cartridge.chr_read_fn == NULL) {
 		return NESEMU_RETURN_MEMORY_PRGROM_NO_DATA;
 	}
 #endif
-	return mem->cartridge.cpu_reader(
+	return mem->cartridge.chr_read_fn(
 		NESEMU_CARTRIDGE_GET_MAPPER_GENERIC_REF(mem->cartridge), addr,
 		value);
 }
@@ -116,11 +129,11 @@ static inline nesemu_error_t nes_chr_cartridge_write(
 	uint8_t value)
 {
 #ifndef CONFIG_NESEMU_DISABLE_SAFETY_CHECKS
-	if (mem->cartridge.cpu_writer == NULL) {
+	if (mem->cartridge.chr_write_fn == NULL) {
 		return NESEMU_RETURN_MEMORY_PRGROM_NO_DATA;
 	}
 #endif
-	return mem->cartridge.cpu_writer(
+	return mem->cartridge.chr_write_fn(
 		NESEMU_CARTRIDGE_GET_MAPPER_GENERIC_REF(mem->cartridge), addr,
 		value);
 }

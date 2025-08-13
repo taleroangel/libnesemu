@@ -19,16 +19,28 @@ struct nes_ines_nrom_cartridge_t {
 	uint8_t prgrom[NESEMU_CARTRIDGE_BANK_SIZE];
 };
 
-nesemu_error_t nes_ines_nrom_cpu_loader(nesemu_mapper_generic_ref_t self,
+nesemu_error_t nes_ines_nrom_prg_loader(nesemu_mapper_generic_ref_t self,
 					uint8_t *cdata,
 					size_t len);
 
-nesemu_error_t nes_ines_nrom_cpu_reader(nesemu_mapper_generic_ref_t self,
+nesemu_error_t nes_ines_nrom_prg_reader(nesemu_mapper_generic_ref_t self,
 					uint16_t addr,
 					uint8_t *content);
 
-nesemu_error_t nes_ines_nrom_cpu_writer(nesemu_mapper_generic_ref_t self,
+nesemu_error_t nes_ines_nrom_prg_writer(nesemu_mapper_generic_ref_t self,
 					uint16_t addr,
 					uint8_t content);
+
+nesemu_error_t nes_ines_nrom_chr_loader(nesemu_mapper_generic_ref_t self,
+					 uint8_t *cdata,
+					 size_t len);
+
+nesemu_error_t nes_ines_nrom_chr_reader(nesemu_mapper_generic_ref_t self,
+					 uint16_t addr,
+					 uint8_t *content);
+
+nesemu_error_t nes_ines_nrom_chr_writer(nesemu_mapper_generic_ref_t self,
+					 uint16_t addr,
+					 uint8_t content);
 
 #endif

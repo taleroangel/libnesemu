@@ -12,11 +12,6 @@
 #define NESEMU_CARTRIDGE_BANK_SIZE 0x4000 /* 16 KiB */
 
 /**
- * Initial address for the cartridge addressing
- */
-#define NESEMU_CARTRIDGE_ADDR_BEGIN 0x4020
-
-/**
  * Initial address for the cartridge RAM
  */
 #define NESEMU_CARTRIDGE_RAM_BEGIN 0x6000
