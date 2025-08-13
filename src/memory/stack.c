@@ -1,4 +1,4 @@
-#include "nesemu/memory/memory.h"
+#include "nesemu/memory/main.h"
 #include "nesemu/memory/stack.h"
 #include "nesemu/util/error.h"
 

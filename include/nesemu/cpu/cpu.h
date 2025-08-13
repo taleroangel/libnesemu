@@ -8,7 +8,7 @@
 
 #include "nesemu/cpu/status.h"
 #include "nesemu/util/error.h"
-#include "nesemu/memory/memory.h"
+#include "nesemu/memory/main.h"
 
 #include <stdint.h>
 #include <stdbool.h>

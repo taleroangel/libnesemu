@@ -1,4 +1,4 @@
 target_sources(nesemu PUBLIC
-    memory.c
+    main.c
     stack.c
 )

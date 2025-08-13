@@ -1,52 +1,38 @@
-/**
- * References:
- * https://www.nesdev.org/wiki/CPU_memory_map
- */
+#ifndef __NESEMU_MEMORY_VIDEO_H__
+#define __NESEMU_MEMORY_VIDEO_H__
 
-#ifndef __NESEMU_MEMORY_H__
-#define __NESEMU_MEMORY_H__
-
-#include "nesemu/util/error.h"
 #include "nesemu/cartridge/cartridge.h"
 
 #include <stdint.h>
 
 /**
- * Max address (total memory size)
+ * Real size for the PPU memory, excluding cartridge and mirroring
  */
-#define NESEMU_MEMORY_ADDRESSING_LIMIT 0xFFFF
+#define NESEMU_MEMORY_VIDEO_SIZE 0x20
 
 /**
- * Size of the CPU memory. Excluding cartridge
+ * Size of the total addressable space.
  */
-#define NESEMU_MEMORY_MAIN_SIZE 0x4020
+#define NESEMU_MEMORY_VIDEO_ADDR_SIZE 0x4000
 
 /**
- * Base memory mirroring range end (exclusive)
+ * 16-bit addressable video memory.
+ * Functions related to this memory type name it `chr`
  */
-#define NESEMU_MEMORY_RAM_MIRRORING_RANGE_START 0x07FF
-
-/**
- * Base memory mirroring range end (inclusive)
- */
-#define NESEMU_MEMORY_RAM_MIRRORING_RANGE_END 0x17FF
-
-/**
- * Address mirroring base for addresses
- *      - 0x0000-0x07FF -> 0x0800-0x0FFF
- *      - 0x0800-0x0FFF
- *      - 0x1000-0x17FF
- */
-#define NESEMU_MEMORY_RAM_MIRRORING_BASE 0x800
-
-/**
- * 16-bit addressable memory
- */
-struct nes_main_memory_t {
+struct nes_video_memory_t {
 	/**
      * Raw memory array. Should not be accessed directly
+     *
+     * This contains only addresses between 0x3F00-0x3F1F.
+     * This is because this is the only real memory within the console,
+     * $0000-$3EFF is mapped to cartridge and $3F20-$3FFF is mirrored.
+     * this is why the size of the array is smaller compared to the
+     * addressable space.
+     *
+     * Memory addresses below 0x3F00 should delegate r/w operations to the
+     * cartridge `chr callbacks`.
      */
-	uint8_t _raw[NESEMU_MEMORY_MAIN_SIZE];
+	uint8_t _data[NESEMU_MEMORY_VIDEO_SIZE];
 
 	/**
      * Game cartridge. Should already be initialized
@@ -57,7 +43,7 @@ struct nes_main_memory_t {
 /**
  * Initialize memory to its initial state 
  */
-nesemu_error_t nes_mem_reset(struct nes_main_memory_t *mem);
+nesemu_error_t nes_chr_reset(struct nes_video_memory_t *mem);
 
 /**
  * Write 8 bits in memory at `addr`
@@ -66,7 +52,7 @@ nesemu_error_t nes_mem_reset(struct nes_main_memory_t *mem);
  * @param addr Memory address
  * @param data Data to be pushed onto memory
  */
-nesemu_error_t nes_mem_w8(struct nes_main_memory_t *mem,
+nesemu_error_t nes_chr_w8(struct nes_video_memory_t *mem,
 			  uint16_t addr,
 			  uint8_t data);
 
@@ -77,7 +63,7 @@ nesemu_error_t nes_mem_w8(struct nes_main_memory_t *mem,
  * @param addr Memory address
  * @param result Reference to where the result will be stored
  */
-nesemu_error_t nes_mem_r8(struct nes_main_memory_t *mem,
+nesemu_error_t nes_chr_r8(struct nes_video_memory_t *mem,
 			  uint16_t addr,
 			  uint8_t *result);
 
@@ -88,7 +74,7 @@ nesemu_error_t nes_mem_r8(struct nes_main_memory_t *mem,
  * @param addr Memory address (should not be last memory position)
  * @param data Data to be pushed onto memory
  */
-nesemu_error_t nes_mem_w16(struct nes_main_memory_t *mem,
+nesemu_error_t nes_chr_w16(struct nes_video_memory_t *mem,
 			   uint16_t addr,
 			   uint16_t data);
 
@@ -99,15 +85,15 @@ nesemu_error_t nes_mem_w16(struct nes_main_memory_t *mem,
  * @param addr Memory address (should not be last memory position)
  * @param result Reference to where the result will be stored
  */
-nesemu_error_t nes_mem_r16(struct nes_main_memory_t *mem,
+nesemu_error_t nes_chr_r16(struct nes_video_memory_t *mem,
 			   uint16_t addr,
 			   uint16_t *result);
 
 /**
  * Syntax sugar around cartridge reader
  */
-static inline nesemu_error_t nes_mem_cartridge_read(
-	struct nes_main_memory_t *mem,
+static inline nesemu_error_t nes_chr_cartridge_read(
+	struct nes_video_memory_t *mem,
 	uint16_t addr,
 	uint8_t *value)
 {
@@ -124,8 +110,8 @@ static inline nesemu_error_t nes_mem_cartridge_read(
 /**
  * Syntax sugar around cartridge writer
  */
-static inline nesemu_error_t nes_mem_cartridge_write(
-	struct nes_main_memory_t *mem,
+static inline nesemu_error_t nes_chr_cartridge_write(
+	struct nes_video_memory_t *mem,
 	uint16_t addr,
 	uint8_t value)
 {

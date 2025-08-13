@@ -1,4 +1,4 @@
-#include "nesemu/memory/memory.h"
+#include "nesemu/memory/main.h"
 #include "nesemu/cartridge/types/common.h"
 
 #include "nesemu/util/error.h"
@@ -22,7 +22,7 @@ nesemu_error_t nes_mem_w8(struct nes_main_memory_t *mem,
 	if ((addr >= NESEMU_MEMORY_RAM_MIRRORING_RANGE_START) &&
 	    (addr <= NESEMU_MEMORY_RAM_MIRRORING_RANGE_END)) {
 		// Address modulo with base should give the target address
-		mem->_raw[addr % NESEMU_MEMORY_RAM_MIRRORING_BASE] = data;
+		mem->_data[addr % NESEMU_MEMORY_RAM_MIRRORING_BASE] = data;
 	}
 
 	// TODO PPU mirroring
@@ -34,7 +34,7 @@ nesemu_error_t nes_mem_w8(struct nes_main_memory_t *mem,
 
 	// Regular address
 	else {
-		mem->_raw[addr] = data;
+		mem->_data[addr] = data;
 	}
 
 	return NESEMU_RETURN_SUCCESS;
@@ -48,7 +48,7 @@ nesemu_error_t nes_mem_r8(struct nes_main_memory_t *mem,
 	if ((addr >= NESEMU_MEMORY_RAM_MIRRORING_RANGE_START) &&
 	    (addr <= NESEMU_MEMORY_RAM_MIRRORING_RANGE_END)) {
 		// Address modulo with base should give the target address
-		*result = mem->_raw[addr % NESEMU_MEMORY_RAM_MIRRORING_BASE];
+		*result = mem->_data[addr % NESEMU_MEMORY_RAM_MIRRORING_BASE];
 	}
 
 	// TODO PPU mirroring
@@ -60,7 +60,7 @@ nesemu_error_t nes_mem_r8(struct nes_main_memory_t *mem,
 
 	// Regular address
 	else {
-		*result = mem->_raw[addr];
+		*result = mem->_data[addr];
 	}
 
 	return NESEMU_RETURN_SUCCESS;

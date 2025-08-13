@@ -1,7 +1,7 @@
 #include "nesemu/cpu/cpu.h"
 #include "nesemu/cpu/instructions.h"
 #include "nesemu/cpu/status.h"
-#include "nesemu/memory/memory.h"
+#include "nesemu/memory/main.h"
 #include "nesemu/util/error.h"
 
 #include <stdint.h>

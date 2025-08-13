@@ -6,7 +6,7 @@
  */
 
 #include "nesemu/util/error.h"
-#include "nesemu/memory/memory.h"
+#include "nesemu/memory/main.h"
 #include "nesemu/cpu/cpu.h"
 #include "nesemu/cartridge/cartridge.h"
 

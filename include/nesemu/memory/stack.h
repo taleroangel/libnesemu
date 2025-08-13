@@ -6,7 +6,7 @@
 #ifndef __NESEMU_MEMORY_STACK_H__
 #define __NESEMU_MEMORY_STACK_H__
 
-#include "nesemu/memory/memory.h"
+#include "nesemu/memory/main.h"
 #include "nesemu/util/error.h"
 
 #include <stdint.h>
