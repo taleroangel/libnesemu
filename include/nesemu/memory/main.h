@@ -12,7 +12,7 @@
 #include <stdint.h>
 
 /**
- * Size of the CPU memory. Excluding cartridge
+ * Size of the CPU memory. Excluding cartridge space
  */
 #define NESEMU_MEMORY_RAM_SIZE 0x4020
 
@@ -61,7 +61,11 @@
 #define NESEMU_MEMORY_RAM_PPU_REG_MIRRORING_ADDR 0x2000
 
 /**
- * 16-bit addressable main memory
+ * 16-bit addressable memory. This is the console's main memory/CPU memory
+ * This memory also acts as a bus for accessing both internal memory and PRG
+ * memory within the cartridge so there is no need to worry about mappings or
+ * mirroring when accessing memory through this structure's related methods.
+ *
  * Functions related to this memory type are named with `mem`
  */
 struct nes_main_memory_t {
@@ -70,26 +74,30 @@ struct nes_main_memory_t {
      *
      * This only contains console internal memory structure ($0000-$401F).
      * Any fields mapped to cartridge are left out and r/w operations
-     * are delegated to the cartridge structure instead.
+     * are delegated to the cartridge structure callbacks instead.
      *
      * That is the reason why the size of this array is smaller than
      * the addressable space.
      *
      * Memory addresses above $401F should delegate r/w operations to the
      * cartridge `cpu callbacks`.
+     *
+     * OPTIMIZATION: Separate this memory in different sections to avoid
+     * allocating memory to mirrored/unused addresses.
      */
 	uint8_t _data[NESEMU_MEMORY_RAM_SIZE];
 
 	/**
-     * Game cartridge. Should already be initialized
+     * Reference to the game cartridge. Should already be initialized.
      */
-	struct nes_cartridge_t cartridge;
+	struct nes_cartridge_t *cartridge;
 };
 
 /**
  * Initialize memory to its initial state 
  */
-nesemu_error_t nes_mem_reset(struct nes_main_memory_t *mem);
+nesemu_return_t nes_mem_init(struct nes_main_memory_t *self,
+			    struct nes_cartridge_t *cartridge);
 
 /**
  * Write 8 bits in memory at `addr`
@@ -98,7 +106,7 @@ nesemu_error_t nes_mem_reset(struct nes_main_memory_t *mem);
  * @param addr Memory address
  * @param data Data to be pushed onto memory
  */
-nesemu_error_t nes_mem_w8(struct nes_main_memory_t *mem,
+nesemu_return_t nes_mem_w8(struct nes_main_memory_t *self,
 			  uint16_t addr,
 			  uint8_t data);
 
@@ -109,7 +117,7 @@ nesemu_error_t nes_mem_w8(struct nes_main_memory_t *mem,
  * @param addr Memory address
  * @param result Reference to where the result will be stored
  */
-nesemu_error_t nes_mem_r8(struct nes_main_memory_t *mem,
+nesemu_return_t nes_mem_r8(struct nes_main_memory_t *self,
 			  uint16_t addr,
 			  uint8_t *result);
 
@@ -120,7 +128,7 @@ nesemu_error_t nes_mem_r8(struct nes_main_memory_t *mem,
  * @param addr Memory address (should not be last memory position)
  * @param data Data to be pushed onto memory
  */
-nesemu_error_t nes_mem_w16(struct nes_main_memory_t *mem,
+nesemu_return_t nes_mem_w16(struct nes_main_memory_t *self,
 			   uint16_t addr,
 			   uint16_t data);
 
@@ -131,44 +139,8 @@ nesemu_error_t nes_mem_w16(struct nes_main_memory_t *mem,
  * @param addr Memory address (should not be last memory position)
  * @param result Reference to where the result will be stored
  */
-nesemu_error_t nes_mem_r16(struct nes_main_memory_t *mem,
+nesemu_return_t nes_mem_r16(struct nes_main_memory_t *self,
 			   uint16_t addr,
 			   uint16_t *result);
-
-/**
- * Syntax sugar around cartridge reader
- */
-static inline nesemu_error_t nes_mem_cartridge_read(
-	struct nes_main_memory_t *mem,
-	uint16_t addr,
-	uint8_t *value)
-{
-#ifndef CONFIG_NESEMU_DISABLE_SAFETY_CHECKS
-	if (mem->cartridge.prg_read_fn == NULL) {
-		return NESEMU_RETURN_MEMORY_PRGROM_NO_DATA;
-	}
-#endif
-	return mem->cartridge.prg_read_fn(
-		NESEMU_CARTRIDGE_GET_MAPPER_GENERIC_REF(mem->cartridge), addr,
-		value);
-}
-
-/**
- * Syntax sugar around cartridge writer
- */
-static inline nesemu_error_t nes_mem_cartridge_write(
-	struct nes_main_memory_t *mem,
-	uint16_t addr,
-	uint8_t value)
-{
-#ifndef CONFIG_NESEMU_DISABLE_SAFETY_CHECKS
-	if (mem->cartridge.prg_write_fn == NULL) {
-		return NESEMU_RETURN_MEMORY_PRGROM_NO_DATA;
-	}
-#endif
-	return mem->cartridge.prg_write_fn(
-		NESEMU_CARTRIDGE_GET_MAPPER_GENERIC_REF(mem->cartridge), addr,
-		value);
-}
 
 #endif

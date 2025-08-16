@@ -31,13 +31,13 @@
  *
  * @param addr Reference to where the memory address to be used is stored.
  */
-static nesemu_error_t cpu_read_addr(struct nes_cpu_t *self,
+static nesemu_return_t cpu_read_addr(struct nes_cpu_t *self,
 				    struct nes_main_memory_t *mem,
 				    enum nes_cpu_addressing_mode_t addressing,
 				    uint16_t *addr)
 {
 	// Error code
-	nesemu_error_t err = NESEMU_RETURN_SUCCESS;
+	nesemu_return_t err = NESEMU_RETURN_SUCCESS;
 
 	// Placeholders for storing addresses
 	uint8_t lsb = 0, msb = 0;
@@ -136,14 +136,14 @@ static nesemu_error_t cpu_read_addr(struct nes_cpu_t *self,
  * this value will change depending on the addr mode
  * @param memory Reference to where the value will be stored
  */
-static nesemu_error_t cpu_read_mem(struct nes_cpu_t *self,
+static nesemu_return_t cpu_read_mem(struct nes_cpu_t *self,
 				   struct nes_main_memory_t *mem,
 				   enum nes_cpu_addressing_mode_t addressing,
 				   int *cycles,
 				   uint8_t *memory)
 {
 	// Return status
-	nesemu_error_t err = 0;
+	nesemu_return_t err = 0;
 
 	// Store address
 	uint16_t addr = 0;
@@ -178,13 +178,13 @@ static nesemu_error_t cpu_read_mem(struct nes_cpu_t *self,
 	return err;
 }
 
-static nesemu_error_t _LDA(struct nes_cpu_t *self,
+static nesemu_return_t _LDA(struct nes_cpu_t *self,
 			   struct nes_main_memory_t *mem,
 			   enum nes_cpu_addressing_mode_t addressing,
 			   int *cycles)
 {
 	// Get value and store it in A
-	nesemu_error_t err =
+	nesemu_return_t err =
 		cpu_read_mem(self, mem, addressing, cycles, &self->a);
 	_NESEMU_RETURN_IF_ERR(err);
 
@@ -194,13 +194,13 @@ static nesemu_error_t _LDA(struct nes_cpu_t *self,
 	return err;
 }
 
-static nesemu_error_t _LDX(struct nes_cpu_t *self,
+static nesemu_return_t _LDX(struct nes_cpu_t *self,
 			   struct nes_main_memory_t *mem,
 			   enum nes_cpu_addressing_mode_t addressing,
 			   int *cycles)
 {
 	// Get value and store it in X
-	nesemu_error_t err =
+	nesemu_return_t err =
 		cpu_read_mem(self, mem, addressing, cycles, &self->x);
 	_NESEMU_RETURN_IF_ERR(err);
 
@@ -210,13 +210,13 @@ static nesemu_error_t _LDX(struct nes_cpu_t *self,
 	return err;
 }
 
-static nesemu_error_t _LDY(struct nes_cpu_t *self,
+static nesemu_return_t _LDY(struct nes_cpu_t *self,
 			   struct nes_main_memory_t *mem,
 			   enum nes_cpu_addressing_mode_t addressing,
 			   int *cycles)
 {
 	// Get value and store it in Y
-	nesemu_error_t err =
+	nesemu_return_t err =
 		cpu_read_mem(self, mem, addressing, cycles, &self->y);
 	_NESEMU_RETURN_IF_ERR(err);
 
@@ -226,12 +226,12 @@ static nesemu_error_t _LDY(struct nes_cpu_t *self,
 	return err;
 }
 
-static nesemu_error_t _STA(struct nes_cpu_t *self,
+static nesemu_return_t _STA(struct nes_cpu_t *self,
 			   struct nes_main_memory_t *mem,
 			   enum nes_cpu_addressing_mode_t addressing)
 {
 	// Decode the value
-	nesemu_error_t err = NESEMU_RETURN_SUCCESS;
+	nesemu_return_t err = NESEMU_RETURN_SUCCESS;
 
 	// Where to store the memory address that is going to be accesed
 	uint16_t addr = 0;
@@ -247,12 +247,12 @@ static nesemu_error_t _STA(struct nes_cpu_t *self,
 	return err;
 }
 
-static nesemu_error_t _STX(struct nes_cpu_t *self,
+static nesemu_return_t _STX(struct nes_cpu_t *self,
 			   struct nes_main_memory_t *mem,
 			   enum nes_cpu_addressing_mode_t addressing)
 {
 	// Decode the value
-	nesemu_error_t err = NESEMU_RETURN_SUCCESS;
+	nesemu_return_t err = NESEMU_RETURN_SUCCESS;
 
 	// Where to store the memory address that is going to be accesed
 	uint16_t addr = 0;
@@ -268,12 +268,12 @@ static nesemu_error_t _STX(struct nes_cpu_t *self,
 	return err;
 }
 
-static nesemu_error_t _STY(struct nes_cpu_t *self,
+static nesemu_return_t _STY(struct nes_cpu_t *self,
 			   struct nes_main_memory_t *mem,
 			   enum nes_cpu_addressing_mode_t addressing)
 {
 	// Decode the value
-	nesemu_error_t err = NESEMU_RETURN_SUCCESS;
+	nesemu_return_t err = NESEMU_RETURN_SUCCESS;
 
 	// Where to store the memory address that is going to be accesed
 	uint16_t addr = 0;
@@ -289,7 +289,7 @@ static nesemu_error_t _STY(struct nes_cpu_t *self,
 	return err;
 }
 
-static nesemu_error_t _TXX(struct nes_cpu_t *self, uint8_t opcode)
+static nesemu_return_t _TXX(struct nes_cpu_t *self, uint8_t opcode)
 {
 	switch (opcode) {
 	case TAX:
@@ -333,7 +333,7 @@ static nesemu_error_t _TXX(struct nes_cpu_t *self, uint8_t opcode)
 	return NESEMU_RETURN_SUCCESS;
 }
 
-static nesemu_error_t _ADC(struct nes_cpu_t *self,
+static nesemu_return_t _ADC(struct nes_cpu_t *self,
 			   struct nes_main_memory_t *mem,
 			   enum nes_cpu_addressing_mode_t addressing,
 			   int *cycles)
@@ -342,7 +342,7 @@ static nesemu_error_t _ADC(struct nes_cpu_t *self,
 	uint8_t memory = 0;
 
 	// Read memory given addressing mode
-	nesemu_error_t err =
+	nesemu_return_t err =
 		cpu_read_mem(self, mem, addressing, cycles, &memory);
 	_NESEMU_RETURN_IF_ERR(err);
 
@@ -375,7 +375,7 @@ static nesemu_error_t _ADC(struct nes_cpu_t *self,
 	return err;
 }
 
-static nesemu_error_t _SBC(struct nes_cpu_t *self,
+static nesemu_return_t _SBC(struct nes_cpu_t *self,
 			   struct nes_main_memory_t *mem,
 			   enum nes_cpu_addressing_mode_t addressing,
 			   int *cycles)
@@ -384,7 +384,7 @@ static nesemu_error_t _SBC(struct nes_cpu_t *self,
 	uint8_t memory = 0;
 
 	// Read memory given addressing mode
-	nesemu_error_t err =
+	nesemu_return_t err =
 		cpu_read_mem(self, mem, addressing, cycles, &memory);
 	_NESEMU_RETURN_IF_ERR(err);
 
@@ -417,12 +417,12 @@ static nesemu_error_t _SBC(struct nes_cpu_t *self,
 	return err;
 }
 
-static nesemu_error_t _INC(struct nes_cpu_t *self,
+static nesemu_return_t _INC(struct nes_cpu_t *self,
 			   struct nes_main_memory_t *mem,
 			   enum nes_cpu_addressing_mode_t addressing)
 {
 	// Decode the value
-	nesemu_error_t err = NESEMU_RETURN_SUCCESS;
+	nesemu_return_t err = NESEMU_RETURN_SUCCESS;
 
 	// Where to store the memory address that is going to be accesed
 	uint16_t addr = 0;
@@ -451,12 +451,12 @@ static nesemu_error_t _INC(struct nes_cpu_t *self,
 	return err;
 }
 
-static nesemu_error_t _DEC(struct nes_cpu_t *self,
+static nesemu_return_t _DEC(struct nes_cpu_t *self,
 			   struct nes_main_memory_t *mem,
 			   enum nes_cpu_addressing_mode_t addressing)
 {
 	// Decode the value
-	nesemu_error_t err = NESEMU_RETURN_SUCCESS;
+	nesemu_return_t err = NESEMU_RETURN_SUCCESS;
 
 	// Where to store the memory address that is going to be accesed
 	uint16_t addr = 0;
@@ -521,12 +521,12 @@ static inline void _DEY(struct nes_cpu_t *self)
 	nes_cpu_status_mask_set(self, NESEMU_CPU_STATUS_MASK_NZ(self->y));
 }
 
-static nesemu_error_t _ASL(struct nes_cpu_t *self,
+static nesemu_return_t _ASL(struct nes_cpu_t *self,
 			   struct nes_main_memory_t *mem,
 			   enum nes_cpu_addressing_mode_t addressing)
 {
 	// Decode the value
-	nesemu_error_t err = NESEMU_RETURN_SUCCESS;
+	nesemu_return_t err = NESEMU_RETURN_SUCCESS;
 
 	// Where to store the memory address that is going to be accesed
 	uint16_t addr = 0;
@@ -579,12 +579,12 @@ static nesemu_error_t _ASL(struct nes_cpu_t *self,
 	return err;
 }
 
-static nesemu_error_t _LSR(struct nes_cpu_t *self,
+static nesemu_return_t _LSR(struct nes_cpu_t *self,
 			   struct nes_main_memory_t *mem,
 			   enum nes_cpu_addressing_mode_t addressing)
 {
 	// Decode the value
-	nesemu_error_t err = NESEMU_RETURN_SUCCESS;
+	nesemu_return_t err = NESEMU_RETURN_SUCCESS;
 
 	// Where to store the memory address that is going to be accesed
 	uint16_t addr = 0;
@@ -637,12 +637,12 @@ static nesemu_error_t _LSR(struct nes_cpu_t *self,
 	return err;
 }
 
-static nesemu_error_t _ROL(struct nes_cpu_t *self,
+static nesemu_return_t _ROL(struct nes_cpu_t *self,
 			   struct nes_main_memory_t *mem,
 			   enum nes_cpu_addressing_mode_t addressing)
 {
 	// Decode the value
-	nesemu_error_t err = NESEMU_RETURN_SUCCESS;
+	nesemu_return_t err = NESEMU_RETURN_SUCCESS;
 
 	// Where to store the memory address that is going to be accesed
 	uint16_t addr = 0;
@@ -692,12 +692,12 @@ static nesemu_error_t _ROL(struct nes_cpu_t *self,
 	return err;
 }
 
-static nesemu_error_t _ROR(struct nes_cpu_t *self,
+static nesemu_return_t _ROR(struct nes_cpu_t *self,
 			   struct nes_main_memory_t *mem,
 			   enum nes_cpu_addressing_mode_t addressing)
 {
 	// Decode the value
-	nesemu_error_t err = NESEMU_RETURN_SUCCESS;
+	nesemu_return_t err = NESEMU_RETURN_SUCCESS;
 
 	// Where to store the memory address that is going to be accesed
 	uint16_t addr = 0;
@@ -747,7 +747,7 @@ static nesemu_error_t _ROR(struct nes_cpu_t *self,
 	return err;
 }
 
-static nesemu_error_t _AND(struct nes_cpu_t *self,
+static nesemu_return_t _AND(struct nes_cpu_t *self,
 			   struct nes_main_memory_t *mem,
 			   enum nes_cpu_addressing_mode_t addressing,
 			   int *cycles)
@@ -756,7 +756,7 @@ static nesemu_error_t _AND(struct nes_cpu_t *self,
 	uint8_t memory = 0;
 
 	// Read memory given addressing mode
-	nesemu_error_t err =
+	nesemu_return_t err =
 		cpu_read_mem(self, mem, addressing, cycles, &memory);
 	_NESEMU_RETURN_IF_ERR(err);
 
@@ -769,7 +769,7 @@ static nesemu_error_t _AND(struct nes_cpu_t *self,
 	return err;
 }
 
-static nesemu_error_t _ORA(struct nes_cpu_t *self,
+static nesemu_return_t _ORA(struct nes_cpu_t *self,
 			   struct nes_main_memory_t *mem,
 			   enum nes_cpu_addressing_mode_t addressing,
 			   int *cycles)
@@ -778,7 +778,7 @@ static nesemu_error_t _ORA(struct nes_cpu_t *self,
 	uint8_t memory = 0;
 
 	// Read memory given addressing mode
-	nesemu_error_t err =
+	nesemu_return_t err =
 		cpu_read_mem(self, mem, addressing, cycles, &memory);
 	_NESEMU_RETURN_IF_ERR(err);
 
@@ -791,7 +791,7 @@ static nesemu_error_t _ORA(struct nes_cpu_t *self,
 	return err;
 }
 
-static nesemu_error_t _EOR(struct nes_cpu_t *self,
+static nesemu_return_t _EOR(struct nes_cpu_t *self,
 			   struct nes_main_memory_t *mem,
 			   enum nes_cpu_addressing_mode_t addressing,
 			   int *cycles)
@@ -800,7 +800,7 @@ static nesemu_error_t _EOR(struct nes_cpu_t *self,
 	uint8_t memory = 0;
 
 	// Read memory given addressing mode
-	nesemu_error_t err =
+	nesemu_return_t err =
 		cpu_read_mem(self, mem, addressing, cycles, &memory);
 	_NESEMU_RETURN_IF_ERR(err);
 
@@ -813,12 +813,12 @@ static nesemu_error_t _EOR(struct nes_cpu_t *self,
 	return err;
 }
 
-static nesemu_error_t _BIT(struct nes_cpu_t *self,
+static nesemu_return_t _BIT(struct nes_cpu_t *self,
 			   struct nes_main_memory_t *mem,
 			   enum nes_cpu_addressing_mode_t addressing)
 {
 	// Decode the value
-	nesemu_error_t err = NESEMU_RETURN_SUCCESS;
+	nesemu_return_t err = NESEMU_RETURN_SUCCESS;
 
 	// Where to store the memory address that is going to be accesed
 	uint16_t addr = 0;
@@ -845,7 +845,7 @@ static nesemu_error_t _BIT(struct nes_cpu_t *self,
 	return err;
 }
 
-static nesemu_error_t _CMP(struct nes_cpu_t *self,
+static nesemu_return_t _CMP(struct nes_cpu_t *self,
 			   struct nes_main_memory_t *mem,
 			   enum nes_cpu_addressing_mode_t addressing,
 			   int *cycles)
@@ -854,7 +854,7 @@ static nesemu_error_t _CMP(struct nes_cpu_t *self,
 	uint8_t memory = 0;
 
 	// Read memory given addressing mode
-	nesemu_error_t err =
+	nesemu_return_t err =
 		cpu_read_mem(self, mem, addressing, cycles, &memory);
 	_NESEMU_RETURN_IF_ERR(err);
 
@@ -872,7 +872,7 @@ static nesemu_error_t _CMP(struct nes_cpu_t *self,
 	return err;
 }
 
-static nesemu_error_t _CPX(struct nes_cpu_t *self,
+static nesemu_return_t _CPX(struct nes_cpu_t *self,
 			   struct nes_main_memory_t *mem,
 			   enum nes_cpu_addressing_mode_t addressing,
 			   int *cycles)
@@ -881,7 +881,7 @@ static nesemu_error_t _CPX(struct nes_cpu_t *self,
 	uint8_t memory = 0;
 
 	// Read memory given addressing mode
-	nesemu_error_t err =
+	nesemu_return_t err =
 		cpu_read_mem(self, mem, addressing, cycles, &memory);
 	_NESEMU_RETURN_IF_ERR(err);
 
@@ -899,7 +899,7 @@ static nesemu_error_t _CPX(struct nes_cpu_t *self,
 	return err;
 }
 
-static nesemu_error_t _CPY(struct nes_cpu_t *self,
+static nesemu_return_t _CPY(struct nes_cpu_t *self,
 			   struct nes_main_memory_t *mem,
 			   enum nes_cpu_addressing_mode_t addressing,
 			   int *cycles)
@@ -908,7 +908,7 @@ static nesemu_error_t _CPY(struct nes_cpu_t *self,
 	uint8_t memory = 0;
 
 	// Read memory given addressing mode
-	nesemu_error_t err =
+	nesemu_return_t err =
 		cpu_read_mem(self, mem, addressing, cycles, &memory);
 	_NESEMU_RETURN_IF_ERR(err);
 
@@ -926,23 +926,23 @@ static nesemu_error_t _CPY(struct nes_cpu_t *self,
 	return err;
 }
 
-static inline nesemu_error_t _PHA(struct nes_cpu_t *self,
+static inline nesemu_return_t _PHA(struct nes_cpu_t *self,
 				  struct nes_main_memory_t *mem)
 {
 	return nes_stack_push_u8(mem, &self->sp, self->a);
 }
 
-static inline nesemu_error_t _PLA(struct nes_cpu_t *self,
+static inline nesemu_return_t _PLA(struct nes_cpu_t *self,
 				  struct nes_main_memory_t *mem)
 {
-	nesemu_error_t err = nes_stack_pop_u8(mem, &self->sp, &self->a);
+	nesemu_return_t err = nes_stack_pop_u8(mem, &self->sp, &self->a);
 	_NESEMU_RETURN_IF_ERR(err);
 
 	nes_cpu_status_mask_set(self, NESEMU_CPU_STATUS_MASK_NZ(self->a));
 	return err;
 }
 
-static inline nesemu_error_t _PHP(struct nes_cpu_t *self,
+static inline nesemu_return_t _PHP(struct nes_cpu_t *self,
 				  struct nes_main_memory_t *mem)
 {
 	uint8_t status =
@@ -950,12 +950,12 @@ static inline nesemu_error_t _PHP(struct nes_cpu_t *self,
 	return nes_stack_push_u8(mem, &self->sp, status);
 }
 
-static inline nesemu_error_t _PLP(struct nes_cpu_t *self,
+static inline nesemu_return_t _PLP(struct nes_cpu_t *self,
 				  struct nes_main_memory_t *mem)
 {
 	// Read status
 	uint8_t status = 0;
-	nesemu_error_t err = nes_stack_pop_u8(mem, &self->sp, &status);
+	nesemu_return_t err = nes_stack_pop_u8(mem, &self->sp, &status);
 	_NESEMU_RETURN_IF_ERR(err);
 
 	// Store status (ignore B flag)
@@ -965,7 +965,7 @@ static inline nesemu_error_t _PLP(struct nes_cpu_t *self,
 	return err;
 }
 
-static nesemu_error_t _CXX_SXX(struct nes_cpu_t *self, uint8_t opcode)
+static nesemu_return_t _CXX_SXX(struct nes_cpu_t *self, uint8_t opcode)
 {
 	switch (opcode) {
 	case CLC:
@@ -1096,12 +1096,12 @@ static inline void _BVS(struct nes_cpu_t *self,
 	_BXX(self, mem, cycles, (self->status & NESEMU_CPU_FLAGS_V) != 0);
 }
 
-static nesemu_error_t _JMP(struct nes_cpu_t *self,
+static nesemu_return_t _JMP(struct nes_cpu_t *self,
 			   struct nes_main_memory_t *mem,
 			   enum nes_cpu_addressing_mode_t addressing)
 {
 	// Placeholders
-	nesemu_error_t err = NESEMU_RETURN_SUCCESS;
+	nesemu_return_t err = NESEMU_RETURN_SUCCESS;
 	uint16_t memory = 0, addr = 0, ptr = 0;
 	uint8_t lsb = 0, msb = 0;
 
@@ -1157,11 +1157,11 @@ static nesemu_error_t _JMP(struct nes_cpu_t *self,
 	return err;
 }
 
-static nesemu_error_t _JSR(struct nes_cpu_t *self,
+static nesemu_return_t _JSR(struct nes_cpu_t *self,
 			   struct nes_main_memory_t *mem)
 {
 	// Placeholders
-	nesemu_error_t err = NESEMU_RETURN_SUCCESS;
+	nesemu_return_t err = NESEMU_RETURN_SUCCESS;
 	uint16_t jaddr = 0;
 	uint8_t lsb = 0, msb = 0;
 
@@ -1178,11 +1178,11 @@ static nesemu_error_t _JSR(struct nes_cpu_t *self,
 	return err;
 }
 
-static nesemu_error_t _RTS(struct nes_cpu_t *self,
+static nesemu_return_t _RTS(struct nes_cpu_t *self,
 			   struct nes_main_memory_t *mem)
 {
 	// Pull from stack
-	nesemu_error_t err = nes_stack_pop_u16(mem, &self->sp, &self->pc);
+	nesemu_return_t err = nes_stack_pop_u16(mem, &self->sp, &self->pc);
 
 	// Increment the program counter
 	self->pc++;
@@ -1190,14 +1190,14 @@ static nesemu_error_t _RTS(struct nes_cpu_t *self,
 	return err;
 }
 
-static nesemu_error_t _BRK(struct nes_cpu_t *self,
+static nesemu_return_t _BRK(struct nes_cpu_t *self,
 			   struct nes_main_memory_t *mem)
 {
 	// Store break reason
 	self->brk = nes_cpu_fetch(self, mem);
 
 	// Push program counter
-	nesemu_error_t err = NESEMU_RETURN_SUCCESS;
+	nesemu_return_t err = NESEMU_RETURN_SUCCESS;
 	err = nes_stack_push_u16(mem, &self->sp, self->pc);
 	_NESEMU_RETURN_IF_ERR(err);
 
@@ -1220,11 +1220,11 @@ static nesemu_error_t _BRK(struct nes_cpu_t *self,
 	return err;
 }
 
-static nesemu_error_t _RTI(struct nes_cpu_t *self,
+static nesemu_return_t _RTI(struct nes_cpu_t *self,
 			   struct nes_main_memory_t *mem)
 {
 	// Placeholders
-	nesemu_error_t err = NESEMU_RETURN_SUCCESS;
+	nesemu_return_t err = NESEMU_RETURN_SUCCESS;
 
 	// Read flags from stack
 	uint8_t status = 0;
@@ -1248,7 +1248,7 @@ static inline void _STP(struct nes_cpu_t *self)
 
 /* Public Functions */
 
-nesemu_error_t nes_cpu_next(struct nes_cpu_t *self,
+nesemu_return_t nes_cpu_next(struct nes_cpu_t *self,
 			    struct nes_main_memory_t *mem,
 			    int *c)
 {
@@ -1259,7 +1259,7 @@ nesemu_error_t nes_cpu_next(struct nes_cpu_t *self,
 	}
 #endif
 	// Error code
-	nesemu_error_t err = NESEMU_RETURN_SUCCESS;
+	nesemu_return_t err = NESEMU_RETURN_SUCCESS;
 
 	// Get instruction opcode
 	uint8_t opc = nes_cpu_fetch(self, mem);

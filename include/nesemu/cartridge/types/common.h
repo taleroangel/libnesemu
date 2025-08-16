@@ -77,7 +77,7 @@ typedef void *nesemu_mapper_generic_ref_t;
  *
  * Should be implemented by each mapper type
  */
-typedef nesemu_error_t (*nes_cartridge_loader_t)(
+typedef nesemu_return_t (*nes_cartridge_loader_t)(
 	nesemu_mapper_generic_ref_t self,
 	uint8_t *cdata,
 	size_t len);
@@ -85,9 +85,11 @@ typedef nesemu_error_t (*nes_cartridge_loader_t)(
 /**
  * Function type for a function that reads from cartridge data
  *
- * Should be implemented by each mapper type
+ * Should be implemented by each mapper type.
+ *
+ * @param content Pointer to an integer where the result will be stored
  */
-typedef nesemu_error_t (*nes_cartridge_read_t)(nesemu_mapper_generic_ref_t self,
+typedef nesemu_return_t (*nes_cartridge_read_t)(nesemu_mapper_generic_ref_t self,
 					       uint16_t addr,
 					       uint8_t *content);
 
@@ -96,8 +98,33 @@ typedef nesemu_error_t (*nes_cartridge_read_t)(nesemu_mapper_generic_ref_t self,
  *
  * Should be implemented by each mapper type
  */
-typedef nesemu_error_t (*nes_cartridge_write_t)(nesemu_mapper_generic_ref_t self,
+typedef nesemu_return_t (*nes_cartridge_write_t)(nesemu_mapper_generic_ref_t self,
 						uint16_t addr,
 						uint8_t content);
+
+/**
+ * Function type for a function that maps `addr` into the appropiate address
+ * given cartridge's mapping rules (mirroring).
+ *
+ * Should be implemented by each mapper type.
+ * Reference for implementation:
+ * https://www.nesdev.org/wiki/Mirroring
+ *
+ * Beware!, this function might return `NESEMU_INFO_CARTRIDGE_DELEGATE_RWOP`
+ * if the result address lives within a cartridge's internal data structure,
+ * indicating that the corresponding r/w operation should be delegated to the
+ * cartridge's r/w callbacks.
+ *
+ * @param mapped Pointer to an integer where the result address will be stored
+ *
+ * @returns `NESEMU_RETURN_SUCCESS` if mapping was found and valid.
+ * `NESEMU_INFO_CARTRIDGE_DELEGATE_RWOP` if the found mapping should be
+ * read/written inside the cartridge.
+ * Any other negative code if an error ocurred.
+ */
+typedef nesemu_return_t (*nes_cartridge_mapper_t)(
+	nesemu_mapper_generic_ref_t self,
+	uint16_t addr,
+	uint16_t *mapped);
 
 #endif

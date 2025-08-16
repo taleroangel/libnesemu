@@ -32,19 +32,24 @@ static const char iNES_header[] = { 'N', 'E', 'S', 0x1A };
  *      nes_ines_<type>_prg_writer,
  *      nes_ines_<type>_chr_loader,
  *      nes_ines_<type>_chr_reader,
- *      nes_ines_<type>_chr_writer
+ *      nes_ines_<type>_chr_writer,
+ *      nes_ines_<type>_chr_mapper,
+ *
  */
 #define _CARTRIDGE_CALLBACKS_FOR_TYPE_BOILERPLATE(cartridge, type) \
 	cartridge->prg_load_fn = nes_ines_##type##_prg_loader;     \
 	cartridge->prg_read_fn = nes_ines_##type##_prg_reader;     \
 	cartridge->prg_write_fn = nes_ines_##type##_prg_writer;    \
 	cartridge->chr_load_fn = nes_ines_##type##_chr_loader;     \
-	cartridge->chr_write_fn = nes_ines_##type##_chr_writer;
+	cartridge->chr_read_fn = nes_ines_##type##_chr_reader;     \
+	cartridge->chr_write_fn = nes_ines_##type##_chr_writer;    \
+	cartridge->chr_mapper_fn = nes_ines_##type##_chr_mapper;
 
-/* TODO load CHRROM and validate other header options */
-nesemu_error_t nes_read_ines(struct nes_cartridge_t *cartridge,
-			     uint8_t *data,
-			     size_t len)
+/* -- Definitions for `cartridge.h` declarations -- */
+
+nesemu_return_t nes_cartridge_read_ines(struct nes_cartridge_t *cartridge,
+				       uint8_t *data,
+				       size_t len)
 {
 #ifndef CONFIG_NESEMU_DISABLE_SAFETY_CHECKS
 	if (len < NESEMU_CARTRIDGE_INES_HEADER_SIZE) {
@@ -52,8 +57,11 @@ nesemu_error_t nes_read_ines(struct nes_cartridge_t *cartridge,
 	}
 #endif
 
+	// Initialize cartridge
+	memset(cartridge, 0, sizeof(struct nes_cartridge_t));
+
 	// Error code
-	nesemu_error_t err = NESEMU_RETURN_SUCCESS;
+	nesemu_return_t err = NESEMU_RETURN_SUCCESS;
 
 	// Validate NES header
 	if (strncmp((const char *)data, iNES_header, sizeof(iNES_header)) !=
@@ -77,7 +85,7 @@ nesemu_error_t nes_read_ines(struct nes_cartridge_t *cartridge,
 
 #ifndef CONFIG_NESEMU_DISABLE_SAFETY_CHECKS
 	// Check if cartridge is not empty
-	if (len == 0) {
+	if (len < prgrom_len) {
 		return NESEMU_RETURN_CARTRIDGE_EMPTY;
 	}
 #endif
@@ -86,7 +94,7 @@ nesemu_error_t nes_read_ines(struct nes_cartridge_t *cartridge,
 	cartridge->type = data[NESEMU_CARTRIDGE_INES_HEADER_MAPPER_TYPE_INDEX];
 
 	switch (cartridge->type) {
-	// NROM mapper
+	//! `nrom` mapper
 	case NESEMU_INES_MAPPER_NROM:
 		_CARTRIDGE_CALLBACKS_FOR_TYPE_BOILERPLATE(cartridge, nrom);
 		break;
@@ -98,9 +106,27 @@ nesemu_error_t nes_read_ines(struct nes_cartridge_t *cartridge,
 		return NESEMU_RETURN_CARTRIDGE_UNSUPPORTED_MAPPER;
 	}
 
-	// Delegate to cartridge loader
+	// Delegate to cartridge PRG loader
 	if ((err = cartridge->prg_load_fn(&cartridge->mapper, cdata,
 					  prgrom_len)) !=
+	    NESEMU_RETURN_SUCCESS) {
+		return err;
+	}
+
+	// Get CHR data offset
+	cdata += prgrom_len;
+	len -= prgrom_len;
+
+#ifndef CONFIG_NESEMU_DISABLE_SAFETY_CHECKS
+	// Check if cartridge is not empty
+	if (len < chrrom_len) {
+		return NESEMU_RETURN_CARTRIDGE_EMPTY;
+	}
+#endif
+
+	// Delegate to cartridge CHR loader
+	if ((err = cartridge->chr_load_fn(&cartridge->mapper, cdata,
+					  chrrom_len)) !=
 	    NESEMU_RETURN_SUCCESS) {
 		return err;
 	}

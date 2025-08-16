@@ -19,28 +19,34 @@ struct nes_ines_nrom_cartridge_t {
 	uint8_t prgrom[NESEMU_CARTRIDGE_BANK_SIZE];
 };
 
-nesemu_error_t nes_ines_nrom_prg_loader(nesemu_mapper_generic_ref_t self,
+nesemu_return_t nes_ines_nrom_prg_loader(nesemu_mapper_generic_ref_t self,
 					uint8_t *cdata,
 					size_t len);
 
-nesemu_error_t nes_ines_nrom_prg_reader(nesemu_mapper_generic_ref_t self,
+nesemu_return_t nes_ines_nrom_prg_reader(nesemu_mapper_generic_ref_t self,
 					uint16_t addr,
 					uint8_t *content);
 
-nesemu_error_t nes_ines_nrom_prg_writer(nesemu_mapper_generic_ref_t self,
+nesemu_return_t nes_ines_nrom_prg_writer(nesemu_mapper_generic_ref_t self,
 					uint16_t addr,
 					uint8_t content);
 
-nesemu_error_t nes_ines_nrom_chr_loader(nesemu_mapper_generic_ref_t self,
-					 uint8_t *cdata,
-					 size_t len);
+nesemu_return_t nes_ines_nrom_chr_loader(nesemu_mapper_generic_ref_t self,
+					uint8_t *cdata,
+					size_t len);
 
-nesemu_error_t nes_ines_nrom_chr_reader(nesemu_mapper_generic_ref_t self,
-					 uint16_t addr,
-					 uint8_t *content);
+nesemu_return_t nes_ines_nrom_chr_reader(nesemu_mapper_generic_ref_t self,
+					uint16_t addr,
+					uint8_t *content);
 
-nesemu_error_t nes_ines_nrom_chr_writer(nesemu_mapper_generic_ref_t self,
-					 uint16_t addr,
-					 uint8_t content);
+/* No CHR writer as there is no external vram nor CHRRAM in this mapping */
+#define nes_ines_nrom_chr_writer NULL;
+
+/* 
+ * Mirroring can be either horizontal or vertical.
+ * This should be set manually by the initialization code based on
+ * cartridge parameters
+ */
+#define nes_ines_nrom_chr_mapper NULL;
 
 #endif

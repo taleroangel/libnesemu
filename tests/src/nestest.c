@@ -53,23 +53,12 @@ int main(void)
 	printf("Current Working Directory = '%s'\n", workdir);
 
 	// Placeholder for the error
-	nesemu_error_t err = NESEMU_RETURN_SUCCESS;
+	nesemu_return_t err = NESEMU_RETURN_SUCCESS;
 
-	/* -- Memory initialization -- */
+    /* -- Load cartridge -- */
 
-	// Initialize memory
-	struct nes_main_memory_t mem;
-	err = nes_mem_reset(&mem);
-	if (err != NESEMU_RETURN_SUCCESS) {
-		fprintf(stderr,
-			"nesemu memory initialization failed with code (0x%x)\n",
-			err);
-		return EXIT_FAILURE;
-	}
-
-	printf("Successful NESEMU memory initialization\n");
-
-	/* -- Load cartridge -- */
+    // Create cartridge
+    struct nes_cartridge_t cartridge;
 
 	// Load cdata
 	size_t clen = 0;
@@ -80,7 +69,7 @@ int main(void)
 	}
 
 	// Load cartridge
-	if (nes_read_ines(&mem.cartridge, cdata, clen) !=
+	if (nes_cartridge_read_ines(&cartridge, cdata, clen) !=
 	    NESEMU_RETURN_SUCCESS) {
 		// Deallocate file data
 		free(cdata);
@@ -98,6 +87,20 @@ int main(void)
 	cdata = NULL;
 
 	printf("Successful NESEMU cartridge initialization\n");
+
+	/* -- Memory initialization -- */
+
+	// Initialize memory
+	struct nes_main_memory_t mem;
+	err = nes_mem_init(&mem, &cartridge);
+	if (err != NESEMU_RETURN_SUCCESS) {
+		fprintf(stderr,
+			"nesemu memory initialization failed with code (0x%x)\n",
+			err);
+		return EXIT_FAILURE;
+	}
+
+	printf("Successful NESEMU memory initialization\n");	
 
 	/* -- CPU Initialization -- */
 	struct nes_cpu_t cpu;
@@ -123,7 +126,7 @@ int main(void)
 
 int run(struct nes_main_memory_t *mem, struct nes_cpu_t *cpu)
 {
-	nesemu_error_t err = NESEMU_RETURN_SUCCESS;
+	nesemu_return_t err = NESEMU_RETURN_SUCCESS;
 	long int tcycles = 0, tinstructions = 0;
 
 	// Set program counter

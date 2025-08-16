@@ -5,7 +5,7 @@
 #include <stddef.h>
 #include <stdint.h>
 
-nesemu_error_t nes_stack_push_u8(struct nes_main_memory_t *mem,
+nesemu_return_t nes_stack_push_u8(struct nes_main_memory_t *mem,
 				 uint8_t *sp,
 				 uint8_t value)
 {
@@ -17,13 +17,13 @@ nesemu_error_t nes_stack_push_u8(struct nes_main_memory_t *mem,
 	}
 #endif
 	// Store value in stack
-	nesemu_error_t err = nes_mem_w8(mem, NESEMU_STACK_GET_ADDR(*sp), value);
+	nesemu_return_t err = nes_mem_w8(mem, NESEMU_STACK_GET_ADDR(*sp), value);
 	// Reduce the sp (descending stack)
 	*sp -= 1;
 	return err;
 }
 
-nesemu_error_t nes_stack_pop_u8(struct nes_main_memory_t *mem,
+nesemu_return_t nes_stack_pop_u8(struct nes_main_memory_t *mem,
 				uint8_t *sp,
 				uint8_t *result)
 {
@@ -42,7 +42,7 @@ nesemu_error_t nes_stack_pop_u8(struct nes_main_memory_t *mem,
 	return nes_mem_r8(mem, addr, result);
 }
 
-nesemu_error_t nes_stack_push_u16(struct nes_main_memory_t *mem,
+nesemu_return_t nes_stack_push_u16(struct nes_main_memory_t *mem,
 				  uint8_t *sp,
 				  uint16_t value)
 {
@@ -56,14 +56,14 @@ nesemu_error_t nes_stack_push_u16(struct nes_main_memory_t *mem,
 	// Reduce the sp (to fit u16)
 	*sp -= 1;
 	// Store value in stack
-	nesemu_error_t err =
+	nesemu_return_t err =
 		nes_mem_w16(mem, NESEMU_STACK_GET_ADDR(*sp), value);
 	// Reduce the sp (descending stack)
 	*sp -= 1;
 	return err;
 }
 
-nesemu_error_t nes_stack_pop_u16(struct nes_main_memory_t *mem,
+nesemu_return_t nes_stack_pop_u16(struct nes_main_memory_t *mem,
 				 uint8_t *sp,
 				 uint16_t *result)
 {

@@ -1,8 +1,10 @@
 #include "nesemu/memory/video.h"
 
+#include "nesemu/cartridge/cartridge.h"
 #include "nesemu/util/error.h"
 #include "nesemu/util/bits.h"
 
+#include <stdint.h>
 #include <string.h>
 
 /**
@@ -17,51 +19,166 @@
 #define __CHECK_ADDRESSING(addr) ;
 #endif
 
-nesemu_error_t nes_chr_reset(struct nes_video_memory_t *mem)
-{
-	(void)memset(mem, 0, sizeof(struct nes_video_memory_t));
-	return NESEMU_RETURN_SUCCESS;
-}
+/* -- Private Functions -- */
 
-nesemu_error_t nes_chr_w8(struct nes_video_memory_t *mem,
-			  uint16_t addr,
-			  uint8_t data)
+/**
+ * Syntax sugar around cartridge reader
+ */
+static inline nesemu_return_t _cartridge_read(struct nes_video_memory_t *self,
+					      uint16_t addr,
+					      uint8_t *value)
 {
-	__CHECK_ADDRESSING(addr);
-
-	// Delegate to cartridge ppu callback
-	if (addr <= NESEMU_MEMORY_VRAM_CARTRIDGE_END) {
-		// Must return!, The callback must handle the logic
-		return nes_chr_cartridge_write(mem, addr, data);
+#ifndef CONFIG_NESEMU_DISABLE_SAFETY_CHECKS
+	if (self->cartridge->chr_read_fn == NULL) {
+		return NESEMU_RETURN_CARTRIDGE_NO_CALLBACK;
 	}
-
-	// Write at address with mirroring considered
-	mem->_data[addr % NESEMU_MEMORY_VRAM_BASE] = data;
-
-	return NESEMU_RETURN_SUCCESS;
+#endif
+	return self->cartridge->chr_read_fn(
+		NESEMU_CARTRIDGE_GET_MAPPER_GENERIC_REF(self->cartridge), addr,
+		value);
 }
 
-nesemu_error_t nes_chr_r8(struct nes_video_memory_t *mem,
-			  uint16_t addr,
-			  uint8_t *result)
+/**
+ * Syntax sugar around cartridge writer
+ */
+static inline nesemu_return_t _cartridge_write(struct nes_video_memory_t *self,
+					       uint16_t addr,
+					       uint8_t value)
 {
-	__CHECK_ADDRESSING(addr);
-
-	// Delegate to cartridge ppu callback
-	if (addr <= NESEMU_MEMORY_VRAM_CARTRIDGE_END) {
-		// Must return!, The callback must handle the logic
-		return nes_chr_cartridge_read(mem, addr, result);
+#ifndef CONFIG_NESEMU_DISABLE_SAFETY_CHECKS
+	if (self->cartridge->chr_write_fn == NULL) {
+		return NESEMU_RETURN_CARTRIDGE_NO_CALLBACK;
 	}
+#endif
+	return self->cartridge->chr_write_fn(
+		NESEMU_CARTRIDGE_GET_MAPPER_GENERIC_REF(self->cartridge), addr,
+		value);
+}
 
-	// Read at address with mirroring considered
-	*result = mem->_data[addr % NESEMU_MEMORY_VRAM_BASE];
+static inline nesemu_return_t _cartridge_mirroring(
+	struct nes_video_memory_t *self,
+	uint16_t addr,
+	uint16_t *mapped)
+{
+#ifndef CONFIG_NESEMU_DISABLE_SAFETY_CHECKS
+	if (self->cartridge->chr_mapper_fn == NULL) {
+		return NESEMU_RETURN_CARTRIDGE_NO_CALLBACK;
+	}
+#endif
+	return self->cartridge->chr_mapper_fn(
+		NESEMU_CARTRIDGE_GET_MAPPER_GENERIC_REF(self->cartridge), addr,
+		mapped);
+}
+
+/* -- Public Functions -- */
+
+nesemu_return_t nes_chr_init(struct nes_video_memory_t *self,
+			     struct nes_cartridge_t *cartridge)
+{
+	(void)memset(self, 0, sizeof(struct nes_video_memory_t));
+	self->cartridge = cartridge;
 
 	return NESEMU_RETURN_SUCCESS;
 }
 
-nesemu_error_t nes_chr_w16(struct nes_video_memory_t *mem,
+nesemu_return_t nes_chr_w8(struct nes_video_memory_t *self,
 			   uint16_t addr,
-			   uint16_t data)
+			   uint8_t data)
+{
+	__CHECK_ADDRESSING(addr);
+
+	// Internal to PPU
+	if (addr >= NESEMU_MEMORY_VRAM_PALETTE_ADDR) {
+		// Compute offset from start of the array
+		addr %= NESEMU_MEMORY_VRAM_PALETTE_ADDR;
+		// Compute address mirroring
+		addr %= NESEMU_MEMORY_VRAM_PALETTE_SIZE;
+
+		// Set the value at the Palette RAM indexes
+		self->palette_ram[addr] = data;
+
+		// Return with no errors
+		return NESEMU_RETURN_SUCCESS;
+	}
+
+	// Other addresses are mapped by the cartridge
+	nesemu_return_t status = NESEMU_RETURN_SUCCESS;
+
+	uint16_t map; // Target address
+	if ((status = _cartridge_mirroring(self, addr, &map)) <
+	    NESEMU_RETURN_SUCCESS) {
+		return status;
+	}
+
+	/* Delegate operation to the cartridge */
+	else if (status == NESEMU_INFO_CARTRIDGE_DELEGATE_RWOP) {
+		return self->cartridge->chr_write_fn == NULL ?
+			       // This cartridge is read-only
+			       NESEMU_RETURN_CARTRIDGE_READ_ONLY :
+			       // Delegate logic to cartridge
+			       _cartridge_write(self, addr, data);
+	}
+
+	/* Do operation directly from PPU CIRAM */
+	else if (status == NESEMU_RETURN_SUCCESS) {
+		// Map address into index
+		addr %= NESEMU_MEMORY_VRAM_CIRAM_SIZE;
+		// Read value directly from index
+		self->ciram[addr] = data;
+	}
+
+	return status;
+}
+
+nesemu_return_t nes_chr_r8(struct nes_video_memory_t *self,
+			   uint16_t addr,
+			   uint8_t *result)
+{
+	__CHECK_ADDRESSING(addr);
+
+	// Internal to PPU
+	if (addr >= NESEMU_MEMORY_VRAM_PALETTE_ADDR) {
+		// Compute offset from start of the array
+		addr %= NESEMU_MEMORY_VRAM_PALETTE_ADDR;
+		// Compute address mirroring
+		addr %= NESEMU_MEMORY_VRAM_PALETTE_SIZE;
+
+		// Get the value at the Palette RAM indexes
+		*result = self->palette_ram[addr];
+
+		// Return with no errors
+		return NESEMU_RETURN_SUCCESS;
+	}
+
+	// Other addresses are mapped by the cartridge
+	nesemu_return_t status = NESEMU_RETURN_SUCCESS;
+
+	uint16_t map; // Target address
+	if ((status = _cartridge_mirroring(self, addr, &map)) <
+	    NESEMU_RETURN_SUCCESS) {
+		return status;
+	}
+
+	/* Delegate operation to the cartridge */
+	else if (status == NESEMU_INFO_CARTRIDGE_DELEGATE_RWOP) {
+		// Delegate logic to cartridge
+		return _cartridge_read(self, addr, result);
+	}
+
+	/* Do operation directly from PPU CIRAM */
+	else if (status == NESEMU_RETURN_SUCCESS) {
+		// Map address into index
+		addr %= NESEMU_MEMORY_VRAM_CIRAM_SIZE;
+		// Read value directly from index
+		*result = self->ciram[addr];
+	}
+
+	return status;
+}
+
+nesemu_return_t nes_chr_w16(struct nes_video_memory_t *self,
+			    uint16_t addr,
+			    uint16_t data)
 {
 	__CHECK_ADDRESSING(addr);
 
@@ -69,22 +186,22 @@ nesemu_error_t nes_chr_w16(struct nes_video_memory_t *mem,
 	uint8_t msb = (data & 0xFF00) >> 8, lsb = (data & 0x00FF);
 
 	// Write LSB
-	nesemu_error_t err;
-	if ((err = nes_chr_w8(mem, addr, lsb)) != NESEMU_RETURN_SUCCESS) {
+	nesemu_return_t err;
+	if ((err = nes_chr_w8(self, addr, lsb)) != NESEMU_RETURN_SUCCESS) {
 		return err;
 	}
 
 	// Write next (MSB)
-	if ((err = nes_chr_w8(mem, addr + 1, msb)) != NESEMU_RETURN_SUCCESS) {
+	if ((err = nes_chr_w8(self, addr + 1, msb)) != NESEMU_RETURN_SUCCESS) {
 		return err;
 	}
 
 	return NESEMU_RETURN_SUCCESS;
 }
 
-nesemu_error_t nes_chr_r16(struct nes_video_memory_t *mem,
-			   uint16_t addr,
-			   uint16_t *result)
+nesemu_return_t nes_chr_r16(struct nes_video_memory_t *self,
+			    uint16_t addr,
+			    uint16_t *result)
 {
 	__CHECK_ADDRESSING(addr);
 
@@ -92,13 +209,13 @@ nesemu_error_t nes_chr_r16(struct nes_video_memory_t *mem,
 	uint8_t lsb, msb;
 
 	// Get LSB
-	nesemu_error_t err;
-	if ((err = nes_chr_r8(mem, addr, &lsb)) != NESEMU_RETURN_SUCCESS) {
+	nesemu_return_t err;
+	if ((err = nes_chr_r8(self, addr, &lsb)) != NESEMU_RETURN_SUCCESS) {
 		return err;
 	}
 
 	// Get next (MSB)
-	if ((err = nes_chr_r8(mem, addr + 1, &msb)) != NESEMU_RETURN_SUCCESS) {
+	if ((err = nes_chr_r8(self, addr + 1, &msb)) != NESEMU_RETURN_SUCCESS) {
 		return err;
 	}
 

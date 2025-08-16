@@ -7,20 +7,61 @@
 #include <stdint.h>
 #include <string.h>
 
-inline nesemu_error_t nes_mem_reset(struct nes_main_memory_t *mem)
+/* -- Private Functions -- */
+
+/**
+ * Syntax sugar around cartridge reader
+ */
+static inline nesemu_return_t _cartridge_read(struct nes_main_memory_t *mem,
+					     uint16_t addr,
+					     uint8_t *value)
 {
-	memset(mem, 0, sizeof(struct nes_main_memory_t));
+#ifndef CONFIG_NESEMU_DISABLE_SAFETY_CHECKS
+	if (mem->cartridge->prg_read_fn == NULL) {
+		return NESEMU_RETURN_CARTRIDGE_NO_CALLBACK;
+	}
+#endif
+	return mem->cartridge->prg_read_fn(
+		NESEMU_CARTRIDGE_GET_MAPPER_GENERIC_REF(mem->cartridge), addr,
+		value);
+}
+
+/**
+ * Syntax sugar around cartridge writer
+ */
+static inline nesemu_return_t _cartridge_write(struct nes_main_memory_t *mem,
+					      uint16_t addr,
+					      uint8_t value)
+{
+#ifndef CONFIG_NESEMU_DISABLE_SAFETY_CHECKS
+	if (mem->cartridge->prg_write_fn == NULL) {
+		return NESEMU_RETURN_CARTRIDGE_NO_CALLBACK;
+	}
+#endif
+	return mem->cartridge->prg_write_fn(
+		NESEMU_CARTRIDGE_GET_MAPPER_GENERIC_REF(mem->cartridge), addr,
+		value);
+}
+
+/* -- Public Functions -- */
+
+inline nesemu_return_t nes_mem_init(struct nes_main_memory_t *self,
+				   struct nes_cartridge_t *cartridge)
+{
+	memset(self, 0, sizeof(struct nes_main_memory_t));
+	self->cartridge = cartridge;
+
 	return NESEMU_RETURN_SUCCESS;
 }
 
-nesemu_error_t nes_mem_w8(struct nes_main_memory_t *mem,
+nesemu_return_t nes_mem_w8(struct nes_main_memory_t *self,
 			  uint16_t addr,
 			  uint8_t data)
 {
 	// Cartridge address, delegate to cartridge callback
 	if (addr >= NESEMU_MEMORY_RAM_CARTRIDGE_BEGIN) {
 		// ! Must return, the callback should handle the logic
-		return nes_mem_cartridge_write(mem, addr, data);
+		return _cartridge_write(self, addr, data);
 	}
 
 	//! Change the address based on mirroring rules
@@ -41,19 +82,19 @@ nesemu_error_t nes_mem_w8(struct nes_main_memory_t *mem,
 	}
 
 	// Write data to target address
-	mem->_data[addr] = data;
+	self->_data[addr] = data;
 
 	return NESEMU_RETURN_SUCCESS;
 }
 
-nesemu_error_t nes_mem_r8(struct nes_main_memory_t *mem,
+nesemu_return_t nes_mem_r8(struct nes_main_memory_t *self,
 			  uint16_t addr,
 			  uint8_t *result)
 {
 	// Cartridge address, delegate to cartridge callback
 	if (addr >= NESEMU_MEMORY_RAM_CARTRIDGE_BEGIN) {
 		// ! Must return, the callback should handle the logic
-		return nes_mem_cartridge_read(mem, addr, result);
+		return _cartridge_read(self, addr, result);
 	}
 
 	//! Change the address based on mirroring rules
@@ -74,12 +115,12 @@ nesemu_error_t nes_mem_r8(struct nes_main_memory_t *mem,
 	}
 
 	// Read data to target address
-	*result = mem->_data[addr];
+	*result = self->_data[addr];
 
 	return NESEMU_RETURN_SUCCESS;
 }
 
-nesemu_error_t nes_mem_w16(struct nes_main_memory_t *mem,
+nesemu_return_t nes_mem_w16(struct nes_main_memory_t *self,
 			   uint16_t addr,
 			   uint16_t data)
 {
@@ -87,20 +128,20 @@ nesemu_error_t nes_mem_w16(struct nes_main_memory_t *mem,
 	uint8_t msb = (data & 0xFF00) >> 8, lsb = (data & 0x00FF);
 
 	// Write LSB
-	nesemu_error_t err;
-	if ((err = nes_mem_w8(mem, addr, lsb)) != NESEMU_RETURN_SUCCESS) {
+	nesemu_return_t err;
+	if ((err = nes_mem_w8(self, addr, lsb)) != NESEMU_RETURN_SUCCESS) {
 		return err;
 	}
 
 	// Write next (MSB)
-	if ((err = nes_mem_w8(mem, addr + 1, msb)) != NESEMU_RETURN_SUCCESS) {
+	if ((err = nes_mem_w8(self, addr + 1, msb)) != NESEMU_RETURN_SUCCESS) {
 		return err;
 	}
 
 	return NESEMU_RETURN_SUCCESS;
 }
 
-nesemu_error_t nes_mem_r16(struct nes_main_memory_t *mem,
+nesemu_return_t nes_mem_r16(struct nes_main_memory_t *self,
 			   uint16_t addr,
 			   uint16_t *result)
 {
@@ -108,13 +149,13 @@ nesemu_error_t nes_mem_r16(struct nes_main_memory_t *mem,
 	uint8_t lsb, msb;
 
 	// Get LSB
-	nesemu_error_t err;
-	if ((err = nes_mem_r8(mem, addr, &lsb)) != NESEMU_RETURN_SUCCESS) {
+	nesemu_return_t err;
+	if ((err = nes_mem_r8(self, addr, &lsb)) != NESEMU_RETURN_SUCCESS) {
 		return err;
 	}
 
 	// Get next (MSB)
-	if ((err = nes_mem_r8(mem, addr + 1, &msb)) != NESEMU_RETURN_SUCCESS) {
+	if ((err = nes_mem_r8(self, addr + 1, &msb)) != NESEMU_RETURN_SUCCESS) {
 		return err;
 	}
 

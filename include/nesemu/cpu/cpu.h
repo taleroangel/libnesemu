@@ -53,13 +53,13 @@ struct nes_cpu_t {
  * @note Initialize CPU last! after every other subsystem
  * @note Cartridge must be already loaded! Complete memory map is required
  */
-nesemu_error_t nes_cpu_init(struct nes_cpu_t *self,
+nesemu_return_t nes_cpu_init(struct nes_cpu_t *self,
 			    struct nes_main_memory_t *mem);
 
 /**
  * Restart the CPU, like pressing the restart button
  */
-nesemu_error_t nes_cpu_reset(struct nes_cpu_t *self,
+nesemu_return_t nes_cpu_reset(struct nes_cpu_t *self,
 			     struct nes_main_memory_t *mem);
 
 /**
@@ -72,7 +72,7 @@ nesemu_error_t nes_cpu_reset(struct nes_cpu_t *self,
  *
  * @note Will execute the instruction at $PC and then return
  */
-nesemu_error_t nes_cpu_next(struct nes_cpu_t *self,
+nesemu_return_t nes_cpu_next(struct nes_cpu_t *self,
 			    struct nes_main_memory_t *mem,
 			    int *cycles);
 

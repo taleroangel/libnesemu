@@ -9,7 +9,7 @@
 #define __NESEMU_CARTRIDGE_NROM_GET_ADDR(addr) \
 	(addr % NESEMU_CARTRIDGE_BANK_SIZE)
 
-nesemu_error_t nes_ines_nrom_prg_loader(nesemu_mapper_generic_ref_t self,
+nesemu_return_t nes_ines_nrom_prg_loader(nesemu_mapper_generic_ref_t self,
 					uint8_t *cdata,
 					size_t len)
 {
@@ -22,7 +22,7 @@ nesemu_error_t nes_ines_nrom_prg_loader(nesemu_mapper_generic_ref_t self,
 	return NESEMU_RETURN_SUCCESS;
 }
 
-nesemu_error_t nes_ines_nrom_prg_reader(nesemu_mapper_generic_ref_t self,
+nesemu_return_t nes_ines_nrom_prg_reader(nesemu_mapper_generic_ref_t self,
 					uint16_t addr,
 					uint8_t *content)
 {
@@ -33,7 +33,7 @@ nesemu_error_t nes_ines_nrom_prg_reader(nesemu_mapper_generic_ref_t self,
 	// This cartridge has no RAM (no addresses below 0x8000 is accesible)
 #ifndef CONFIG_NESEMU_DISABLE_SAFETY_CHECKS
 	if (addr < NESEMU_CARTRIDGE_ROM_BEGIN) {
-		return NESEMU_RETURN_CARTRIDGE_UNMAPPED_ADDR;
+		return NESEMU_RETURN_CARTRIDGE_ADDR_NOT_MAPPED;
 	}
 #endif
 
@@ -43,7 +43,7 @@ nesemu_error_t nes_ines_nrom_prg_reader(nesemu_mapper_generic_ref_t self,
 	return NESEMU_RETURN_SUCCESS;
 }
 
-inline nesemu_error_t nes_ines_nrom_prg_writer(nesemu_mapper_generic_ref_t self,
+inline nesemu_return_t nes_ines_nrom_prg_writer(nesemu_mapper_generic_ref_t self,
 					       uint16_t addr,
 					       uint8_t content)
 {
@@ -54,20 +54,14 @@ inline nesemu_error_t nes_ines_nrom_prg_writer(nesemu_mapper_generic_ref_t self,
 	return NESEMU_RETURN_CARTRIDGE_READ_ONLY;
 }
 
-nesemu_error_t nes_ines_nrom_chr_loader(nesemu_mapper_generic_ref_t self,
+nesemu_return_t nes_ines_nrom_chr_loader(nesemu_mapper_generic_ref_t self,
 					uint8_t *cdata,
 					size_t len) 
 {
 }
 
-nesemu_error_t nes_ines_nrom_chr_reader(nesemu_mapper_generic_ref_t self,
+nesemu_return_t nes_ines_nrom_chr_reader(nesemu_mapper_generic_ref_t self,
 					uint16_t addr,
 					uint8_t *content)
-{
-}
-
-nesemu_error_t nes_ines_nrom_chr_writer(nesemu_mapper_generic_ref_t self,
-					uint16_t addr,
-					uint8_t content)
 {
 }

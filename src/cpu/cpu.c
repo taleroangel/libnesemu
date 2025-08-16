@@ -7,7 +7,7 @@
 #include <stdint.h>
 #include <string.h>
 
-nesemu_error_t nes_cpu_init(struct nes_cpu_t *self,
+nesemu_return_t nes_cpu_init(struct nes_cpu_t *self,
 			    struct nes_main_memory_t *mem)
 {
 	// Set every regsiter to 0, simulating booting from power off
@@ -22,7 +22,7 @@ nesemu_error_t nes_cpu_init(struct nes_cpu_t *self,
 	return NESEMU_RETURN_SUCCESS;
 }
 
-nesemu_error_t nes_cpu_reset(struct nes_cpu_t *self,
+nesemu_return_t nes_cpu_reset(struct nes_cpu_t *self,
 			     struct nes_main_memory_t *mem)
 {
 	// Set the program counter to the addr at the CPU reset vector
