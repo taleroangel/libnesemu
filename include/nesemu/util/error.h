@@ -13,8 +13,7 @@ typedef enum nesemu_return_t {
 	/* --- Generic Errors --- */
 	NESEMU_RETURN_SUCCESS = 0, /**< Operation success */
 	NESEMU_RETURN_GENERIC_ERROR = -1, /**< Unknown error (check errno) */
-	NESEMU_RETURN_BAD_ARGUMENTS =
-		-2, /**< Wrong arguments for function call */
+	NESEMU_RETURN_BAD_ARGUMENTS = -2, /**< Wrong arguments for function call */
 
 	/* --- Memory --- */
 	NESEMU_RETURN_MEMORY_INVALILD_ADDR = -0x10,
@@ -22,6 +21,7 @@ typedef enum nesemu_return_t {
 	NESEMU_RETURN_MEMORY_STACK_UNDERFLOW = -0x12,
 	NESEMU_RETURN_MEMORY_PRGROM_OVERFLOW = -0x13,
 	NESEMU_RETURN_MEMORY_PRGROM_NO_DATA = -0x14,
+    NESEMU_RETURN_MEMORY_VRAM_BAD_MAPPER = -0x15,
 
 	/* --- CPU --- */
 	NESEMU_RETURN_CPU_UNSUPPORTED_INSTRUCTION = -0x20,

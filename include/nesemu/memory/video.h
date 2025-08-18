@@ -37,6 +37,9 @@
  * This memory also acts as a bus for accessing both internal vram and CHR
  * memory within the cartridge so there is no need to worry about mappings or
  * mirroring when accessing vram through this structure's related methods.
+ *
+ * @note Pattern tables live in the cartridge, no memory allocated for them
+ * here!.
  */
 struct nes_video_memory_t {
 

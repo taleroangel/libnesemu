@@ -1,8 +1,9 @@
 /**
  * Code to load iNES cartridge format
  *
- * Reference:
+ * References:
  * https://www.emulationonline.com/systems/nes/ines-loading/
+ * https://www.nesdev.org/wiki/INES
  */
 
 #ifndef __NESEMU_CARTRIDGE_H__
@@ -44,9 +45,14 @@
 #define NESEMU_CARTRIDGE_INES_HEADER_CHRROM_CHUNK_SIZE 0x2000 /* 8KiB */
 
 /**
- * Index for the byte defining the mapper type
+ * Index for the FLAGS 6 byte
  */
-#define NESEMU_CARTRIDGE_INES_HEADER_MAPPER_TYPE_INDEX 6
+#define NESEMU_CARTRIDGE_INES_HEADER_FLAGS_6_INDEX 6
+
+/**
+ * Index for the FLAGS 7 byte
+ */
+#define NESEMU_CARTRIDGE_INES_HEADER_FLAGS_7_INDEX 7
 
 /**
  * Variant type for iNES cartridge mappers
@@ -71,6 +77,49 @@ union nes_ines_mapper_t {
 enum nes_ines_mapper_variant {
 	NESEMU_INES_MAPPER_UNSUPPORTED = -1,
 	NESEMU_INES_MAPPER_NROM = 0,
+};
+
+/**
+ * Flags 6 from the iNES header bit masks
+ *
+ * 76543210
+ * ||||||||
+ * |||||||+- Nametable arrangement: 0: vertical arrangement ("horizontal mirrored") (CIRAM A10 = PPU A11)
+ * |||||||                          1: horizontal arrangement ("vertically mirrored") (CIRAM A10 = PPU A10)
+ * ||||||+-- 1: Cartridge contains battery-backed PRG RAM ($6000-7FFF) or other persistent memory
+ * |||||+--- 1: 512-byte trainer at $7000-$71FF (stored before PRG data)
+ * ||||+---- 1: Alternative nametable layout
+ * ++++----- Lower nybble of mapper number
+ *
+ * Reference:
+ * https://www.nesdev.org/wiki/INES#Flags_6
+ */
+enum nes_ines_attr_flags_6 {
+	NESEMU_INES_FLAGS_6_NAMETABLE = 0x01,
+	NESEMU_INES_FLAGS_6_BATTERY = 0x02,
+	NESEMU_INES_FLAGS_6_TRAINER = 0x04,
+	NESEMU_INES_FLAGS_6_ALT = 0x08,
+	NESEMU_INES_FLAGS_6_MAPPER_LNYBBLE = 0xF0,
+};
+
+/**
+ * Flags 7 from the iNES header bit masks
+ *
+ * 76543210
+ * ||||||||
+ * |||||||+- VS Unisystem
+ * ||||||+-- PlayChoice-10 (8 KB of Hint Screen data stored after CHR data)
+ * ||||++--- If equal to 2, flags 8-15 are in NES 2.0 format
+ * ++++----- Upper nybble of mapper number
+ *
+ * Reference:
+ * https://www.nesdev.org/wiki/INES#Flags_7
+ */
+enum nes_ines_attr_flags_7 {
+	NESEMU_INES_FLAGS_7_VS = 0x01,
+	NESEMU_INES_FLAGS_7_PC = 0x02,
+	NESEMU_INES_FLAGS_7_INES2 = 0x0C,
+	NESEMU_INES_FLAGS_7_MAPPER_HNYBBLE = 0xF0,
 };
 
 /**
@@ -126,12 +175,12 @@ struct nes_cartridge_t {
      */
 	nes_cartridge_read_t chr_read_fn;
 
-    /**
+	/**
      * Callback method to map VRAM addresses (Nametable mirroring).
      *
      * @note Required field, must not be NULL.
      */
-    nes_cartridge_mapper_t chr_mapper_fn;
+	nes_cartridge_mapper_t chr_mapper_fn;
 
 	/**
      * Method to write into cartridge's chrram.
@@ -160,7 +209,7 @@ struct nes_cartridge_t {
  * @note Do this before the CPU is initialized.
  */
 nesemu_return_t nes_cartridge_read_ines(struct nes_cartridge_t *cartridge,
-				       uint8_t *data,
-				       size_t len);
+					uint8_t *data,
+					size_t len);
 
 #endif

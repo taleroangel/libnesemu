@@ -7,9 +7,14 @@
 #include <stddef.h>
 
 /**
- * Size in bytes of a single card bank
+ * Size in bytes of a single prg bank
  */
-#define NESEMU_CARTRIDGE_BANK_SIZE 0x4000 /* 16 KiB */
+#define NESEMU_CARTRIDGE_PRGROM_BANK_SIZE 0x4000 /* 16 KiB */
+
+/**
+ * Size in bytes of a single chr bank
+ */
+#define NESEMU_CARTRIDGE_CHRROM_BANK_SIZE 0x2000 /* 8 KiB */
 
 /**
  * Initial address for the cartridge RAM
@@ -25,6 +30,11 @@
  * Total size of the addresable space
  */
 #define NESEMU_CARTRIDGE_ADDR_SIZE 0xBFE0
+
+/**
+ * Pattern table addressable space 
+ */
+#define NESEMU_CARTRIDGE_PATTERN_TABLE_ADDR 0x2000
 
 /**
  * (∩๏﹏๏)⊃━☆ﾟ.* -- A morsel of black sorcery, woven in the dread tongue of C.
@@ -90,17 +100,18 @@ typedef nesemu_return_t (*nes_cartridge_loader_t)(
  * @param content Pointer to an integer where the result will be stored
  */
 typedef nesemu_return_t (*nes_cartridge_read_t)(nesemu_mapper_generic_ref_t self,
-					       uint16_t addr,
-					       uint8_t *content);
+						uint16_t addr,
+						uint8_t *content);
 
 /**
  * Function type for a function that writes to cartridge data
  *
  * Should be implemented by each mapper type
  */
-typedef nesemu_return_t (*nes_cartridge_write_t)(nesemu_mapper_generic_ref_t self,
-						uint16_t addr,
-						uint8_t content);
+typedef nesemu_return_t (*nes_cartridge_write_t)(
+	nesemu_mapper_generic_ref_t self,
+	uint16_t addr,
+	uint8_t content);
 
 /**
  * Function type for a function that maps `addr` into the appropiate address
@@ -115,7 +126,15 @@ typedef nesemu_return_t (*nes_cartridge_write_t)(nesemu_mapper_generic_ref_t sel
  * indicating that the corresponding r/w operation should be delegated to the
  * cartridge's r/w callbacks.
  *
- * @param mapped Pointer to an integer where the result address will be stored
+ * Unless `NESEMU_INFO_CARTRIDGE_DELEGATE_RWOP` is specified, result address
+ * space should not exceed boundaries $2000-$27FF, incoming address space
+ * is withing the range $0000-$2FFF.
+ *
+ * Addresses for CHRROM/CHRRAM ($0000-$1FFF) should always return
+ * `NESEMU_INFO_CARTRIDGE_DELEGATE_RWOP`, not doing this will cause an
+ * exception of type `NESEMU_RETURN_MEMORY_VRAM_BAD_MAPPER`.
+ *
+ * @param mapped Pointer to an integer where the result address will be store *
  *
  * @returns `NESEMU_RETURN_SUCCESS` if mapping was found and valid.
  * `NESEMU_INFO_CARTRIDGE_DELEGATE_RWOP` if the found mapping should be

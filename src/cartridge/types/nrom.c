@@ -1,5 +1,8 @@
 #include "nesemu/cartridge/types/nrom.h"
+#include "nesemu/cartridge/types/common.h"
 #include "nesemu/util/compat.h"
+#include "nesemu/util/error.h"
+#include <string.h>
 
 /**
  * Helper macro to get a PRGROM address with mirroring
@@ -7,11 +10,11 @@
  * $C000-$FFFF,$8000-$BFFF -> $0000-4000
  */
 #define __NESEMU_CARTRIDGE_NROM_GET_ADDR(addr) \
-	(addr % NESEMU_CARTRIDGE_BANK_SIZE)
+	(addr % NESEMU_CARTRIDGE_PRGROM_BANK_SIZE)
 
 nesemu_return_t nes_ines_nrom_prg_loader(nesemu_mapper_generic_ref_t self,
-					uint8_t *cdata,
-					size_t len)
+					 uint8_t *cdata,
+					 size_t len)
 {
 	// Create a reference to `nes_ines_nrom_cartridge_t` called `this`
 	NESEMU_CARTRIDGE_DEFINE_GENERIC_TYPE(
@@ -23,8 +26,8 @@ nesemu_return_t nes_ines_nrom_prg_loader(nesemu_mapper_generic_ref_t self,
 }
 
 nesemu_return_t nes_ines_nrom_prg_reader(nesemu_mapper_generic_ref_t self,
-					uint16_t addr,
-					uint8_t *content)
+					 uint16_t addr,
+					 uint8_t *content)
 {
 	// Create a reference to `nes_ines_nrom_cartridge_t` called `this`
 	NESEMU_CARTRIDGE_DEFINE_GENERIC_TYPE(
@@ -44,8 +47,8 @@ nesemu_return_t nes_ines_nrom_prg_reader(nesemu_mapper_generic_ref_t self,
 }
 
 inline nesemu_return_t nes_ines_nrom_prg_writer(nesemu_mapper_generic_ref_t self,
-					       uint16_t addr,
-					       uint8_t content)
+						uint16_t addr,
+						uint8_t content)
 {
 	_NESEMU_UNUSED(self);
 	_NESEMU_UNUSED(addr);
@@ -55,13 +58,32 @@ inline nesemu_return_t nes_ines_nrom_prg_writer(nesemu_mapper_generic_ref_t self
 }
 
 nesemu_return_t nes_ines_nrom_chr_loader(nesemu_mapper_generic_ref_t self,
-					uint8_t *cdata,
-					size_t len) 
+					 uint8_t *cdata,
+					 size_t len)
 {
+	// Create a reference to `nes_ines_nrom_cartridge_t` called `this`
+	NESEMU_CARTRIDGE_DEFINE_GENERIC_TYPE(
+		this, struct nes_ines_nrom_cartridge_t, self);
+
+	(void)memcpy(this->chrrom, cdata, len);
+	return NESEMU_RETURN_SUCCESS;
 }
 
 nesemu_return_t nes_ines_nrom_chr_reader(nesemu_mapper_generic_ref_t self,
-					uint16_t addr,
-					uint8_t *content)
+					 uint16_t addr,
+					 uint8_t *content)
 {
+#ifndef CONFIG_NESEMU_DISABLE_SAFETY_CHECKS
+	/* Check within bounds */
+	if (addr >= NESEMU_CARTRIDGE_NROM_CHRROM_SIZE) {
+		return NESEMU_RETURN_CARTRIDGE_ADDR_NOT_MAPPED;
+	}
+#endif
+
+	// Create a reference to `nes_ines_nrom_cartridge_t` called `this`
+	NESEMU_CARTRIDGE_DEFINE_GENERIC_TYPE(
+		this, struct nes_ines_nrom_cartridge_t, self);
+
+	*content = this->chrrom[addr];
+	return NESEMU_RETURN_SUCCESS;
 }

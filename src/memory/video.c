@@ -55,10 +55,9 @@ static inline nesemu_return_t _cartridge_write(struct nes_video_memory_t *self,
 		value);
 }
 
-static inline nesemu_return_t _cartridge_mirroring(
-	struct nes_video_memory_t *self,
-	uint16_t addr,
-	uint16_t *mapped)
+static inline nesemu_return_t _cartridge_mapping(struct nes_video_memory_t *self,
+						 uint16_t addr,
+						 uint16_t *mapped)
 {
 #ifndef CONFIG_NESEMU_DISABLE_SAFETY_CHECKS
 	if (self->cartridge->chr_mapper_fn == NULL) {
@@ -105,8 +104,10 @@ nesemu_return_t nes_chr_w8(struct nes_video_memory_t *self,
 	nesemu_return_t status = NESEMU_RETURN_SUCCESS;
 
 	uint16_t map; // Target address
-	if ((status = _cartridge_mirroring(self, addr, &map)) <
+	/* Call cartridge address mapping, store code in `status` */
+	if ((status = _cartridge_mapping(self, addr, &map)) <
 	    NESEMU_RETURN_SUCCESS) {
+		// Handle error
 		return status;
 	}
 
@@ -121,6 +122,12 @@ nesemu_return_t nes_chr_w8(struct nes_video_memory_t *self,
 
 	/* Do operation directly from PPU CIRAM */
 	else if (status == NESEMU_RETURN_SUCCESS) {
+		// Check that address is within range
+#ifndef CONFIG_NESEMU_DISABLE_SAFETY_CHECKS
+		if (addr < NESEMU_MEMORY_VRAM_CIRAM_ADDR) {
+			return NESEMU_RETURN_MEMORY_VRAM_BAD_MAPPER;
+		}
+#endif
 		// Map address into index
 		addr %= NESEMU_MEMORY_VRAM_CIRAM_SIZE;
 		// Read value directly from index
@@ -154,8 +161,10 @@ nesemu_return_t nes_chr_r8(struct nes_video_memory_t *self,
 	nesemu_return_t status = NESEMU_RETURN_SUCCESS;
 
 	uint16_t map; // Target address
-	if ((status = _cartridge_mirroring(self, addr, &map)) <
+	/* Call cartridge address mapping, store code in `status` */
+	if ((status = _cartridge_mapping(self, addr, &map)) <
 	    NESEMU_RETURN_SUCCESS) {
+		// Handle error
 		return status;
 	}
 
@@ -167,6 +176,12 @@ nesemu_return_t nes_chr_r8(struct nes_video_memory_t *self,
 
 	/* Do operation directly from PPU CIRAM */
 	else if (status == NESEMU_RETURN_SUCCESS) {
+		// Check that address is within range
+#ifndef CONFIG_NESEMU_DISABLE_SAFETY_CHECKS
+		if (addr < NESEMU_MEMORY_VRAM_CIRAM_ADDR) {
+			return NESEMU_RETURN_MEMORY_VRAM_BAD_MAPPER;
+		}
+#endif
 		// Map address into index
 		addr %= NESEMU_MEMORY_VRAM_CIRAM_SIZE;
 		// Read value directly from index

@@ -4,6 +4,7 @@
  * kind of warning for this file */
 
 #include "nesemu/cartridge/cartridge.h"
+#include "nesemu/cartridge/types/mirroring.h"
 #include "nesemu/cartridge/types/nrom.h" /* IWYU pragma: keep */
 
 /* -- Other includes -- */
@@ -48,8 +49,8 @@ static const char iNES_header[] = { 'N', 'E', 'S', 0x1A };
 /* -- Definitions for `cartridge.h` declarations -- */
 
 nesemu_return_t nes_cartridge_read_ines(struct nes_cartridge_t *cartridge,
-				       uint8_t *data,
-				       size_t len)
+					uint8_t *data,
+					size_t len)
 {
 #ifndef CONFIG_NESEMU_DISABLE_SAFETY_CHECKS
 	if (len < NESEMU_CARTRIDGE_INES_HEADER_SIZE) {
@@ -91,12 +92,25 @@ nesemu_return_t nes_cartridge_read_ines(struct nes_cartridge_t *cartridge,
 #endif
 
 	/* ! -- Mapper Setup -- */
-	cartridge->type = data[NESEMU_CARTRIDGE_INES_HEADER_MAPPER_TYPE_INDEX];
+
+	// Get flags data
+	uint8_t flags_6 = data[NESEMU_CARTRIDGE_INES_HEADER_FLAGS_6_INDEX],
+		flags_7 = data[NESEMU_CARTRIDGE_INES_HEADER_FLAGS_7_INDEX];
+
+	// Initial mirroring mode
+	uint8_t ntarr = flags_6 & NESEMU_INES_FLAGS_6_NAMETABLE;
+
+	// Build mapper byte
+	cartridge->type = flags_7 & NESEMU_INES_FLAGS_7_MAPPER_HNYBBLE;
+	cartridge->type |= (flags_6 & NESEMU_INES_FLAGS_6_MAPPER_LNYBBLE) >> 4;
 
 	switch (cartridge->type) {
 	//! `nrom` mapper
 	case NESEMU_INES_MAPPER_NROM:
 		_CARTRIDGE_CALLBACKS_FOR_TYPE_BOILERPLATE(cartridge, nrom);
+		cartridge->chr_mapper_fn =
+			(ntarr == 0) ? nes_cartridge_mapper_vertical :
+				       nes_cartridge_mapper_horizontal;
 		break;
 
 	// Unsupported mappers
