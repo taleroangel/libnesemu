@@ -29,23 +29,24 @@ struct nes_ines_nrom_cartridge_t {
 	uint8_t chrrom[NESEMU_CARTRIDGE_NROM_CHRROM_SIZE];
 };
 
-nesemu_return_t nes_ines_nrom_prg_loader(nesemu_mapper_generic_ref_t self,
+/* -- Callbacks -- */
+
+nesemu_return_t nes_ines_nrom_prg_loader(struct nes_ines_nrom_cartridge_t *self,
 					 uint8_t *cdata,
 					 size_t len);
 
-nesemu_return_t nes_ines_nrom_prg_reader(nesemu_mapper_generic_ref_t self,
+nesemu_return_t nes_ines_nrom_prg_reader(struct nes_ines_nrom_cartridge_t *self,
 					 uint16_t addr,
 					 uint8_t *content);
 
-nesemu_return_t nes_ines_nrom_prg_writer(nesemu_mapper_generic_ref_t self,
-					 uint16_t addr,
-					 uint8_t content);
+/* No PRG writer as there is no external vram nor PRGRAM in this mapping */
+#define nes_ines_nrom_prg_writer NULL;
 
-nesemu_return_t nes_ines_nrom_chr_loader(nesemu_mapper_generic_ref_t self,
+nesemu_return_t nes_ines_nrom_chr_loader(struct nes_ines_nrom_cartridge_t *self,
 					 uint8_t *cdata,
 					 size_t len);
 
-nesemu_return_t nes_ines_nrom_chr_reader(nesemu_mapper_generic_ref_t self,
+nesemu_return_t nes_ines_nrom_chr_reader(struct nes_ines_nrom_cartridge_t *self,
 					 uint16_t addr,
 					 uint8_t *content);
 

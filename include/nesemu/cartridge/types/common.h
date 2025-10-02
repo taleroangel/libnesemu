@@ -61,31 +61,21 @@
  * (struct nes_ines_nrom_cartridge_t *)generic
  *
  * Make sure to cast to the right type, no type safety here.
- * You can use macro `NESEMU_CARTRIDGE_DEFINE_GENERIC_TYPE` for syntax sugar
+ * You can create your functions with a reference to their struct instead of
+ * the generic reference (void *) and cast them to the corresponding function
+ * pointer type. Beware! this may cause undefined behaviour if the function
+ * signatures are incompatible.
  */
 typedef void *nesemu_mapper_generic_ref_t;
-
-/**
- * Syntax sugar to create a pointer type variable from a mapper generic reference
- *
- * i.e
- * nesemu_mapper_generic_ref_t self;
- * NESEMU_CARTRIDGE_DEFINE_GENERIC_TYPE(this, struct foo, self);
- *
- * Creates a `this` variable of type `struct foo*`
- *
- * @param name (str) Name of the new variable
- * @param type (str) Type for the new variable (without asterisc)
- * @param self (nesemu_mapper_generic_ref_t) Generic reference
- */
-#define NESEMU_CARTRIDGE_DEFINE_GENERIC_TYPE(name, type, self) \
-	type *name = (type *)self
 
 /**
  * Function type for a function that reads cartridge data `cdata` of size `len`
  * into the cartridge memory.
  *
- * Should be implemented by each mapper type
+ * Should be implemented by each mapper type.
+ *
+ * You can use a reference to the cartridge variant type instead of
+ * `nesemu_mapper_generic_ref_t` but you'll need to cast the function pointer.
  */
 typedef nesemu_return_t (*nes_cartridge_loader_t)(
 	nesemu_mapper_generic_ref_t self,
@@ -96,6 +86,9 @@ typedef nesemu_return_t (*nes_cartridge_loader_t)(
  * Function type for a function that reads from cartridge data
  *
  * Should be implemented by each mapper type.
+ * 
+ * You can use a reference to the cartridge variant type instead of
+ * `nesemu_mapper_generic_ref_t` but you'll need to cast the function pointer.
  *
  * @param content Pointer to an integer where the result will be stored
  */
@@ -107,6 +100,9 @@ typedef nesemu_return_t (*nes_cartridge_read_t)(nesemu_mapper_generic_ref_t self
  * Function type for a function that writes to cartridge data
  *
  * Should be implemented by each mapper type
+ *
+ * You can use a reference to the cartridge variant type instead of
+ * `nesemu_mapper_generic_ref_t` but you'll need to cast the function pointer.
  */
 typedef nesemu_return_t (*nes_cartridge_write_t)(
 	nesemu_mapper_generic_ref_t self,
@@ -133,6 +129,9 @@ typedef nesemu_return_t (*nes_cartridge_write_t)(
  * Addresses for CHRROM/CHRRAM ($0000-$1FFF) should always return
  * `NESEMU_INFO_CARTRIDGE_DELEGATE_RWOP`, not doing this will cause an
  * exception of type `NESEMU_RETURN_MEMORY_VRAM_BAD_MAPPER`.
+ *
+ * You can use a reference to the cartridge variant type instead of
+ * `nesemu_mapper_generic_ref_t` but you'll need to cast the function pointer.
  *
  * @param mapped Pointer to an integer where the result address will be store *
  *

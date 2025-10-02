@@ -13,8 +13,8 @@
  * Syntax sugar around cartridge reader
  */
 static inline nesemu_return_t _cartridge_read(struct nes_main_memory_t *mem,
-					     uint16_t addr,
-					     uint8_t *value)
+					      uint16_t addr,
+					      uint8_t *value)
 {
 #ifndef CONFIG_NESEMU_DISABLE_SAFETY_CHECKS
 	if (mem->cartridge->prg_read_fn == NULL) {
@@ -30,12 +30,12 @@ static inline nesemu_return_t _cartridge_read(struct nes_main_memory_t *mem,
  * Syntax sugar around cartridge writer
  */
 static inline nesemu_return_t _cartridge_write(struct nes_main_memory_t *mem,
-					      uint16_t addr,
-					      uint8_t value)
+					       uint16_t addr,
+					       uint8_t value)
 {
 #ifndef CONFIG_NESEMU_DISABLE_SAFETY_CHECKS
 	if (mem->cartridge->prg_write_fn == NULL) {
-		return NESEMU_RETURN_CARTRIDGE_NO_CALLBACK;
+		return NESEMU_RETURN_CARTRIDGE_PRGROM_READ_ONLY;
 	}
 #endif
 	return mem->cartridge->prg_write_fn(
@@ -46,7 +46,7 @@ static inline nesemu_return_t _cartridge_write(struct nes_main_memory_t *mem,
 /* -- Public Functions -- */
 
 inline nesemu_return_t nes_mem_init(struct nes_main_memory_t *self,
-				   struct nes_cartridge_t *cartridge)
+				    struct nes_cartridge_t *cartridge)
 {
 	memset(self, 0, sizeof(struct nes_main_memory_t));
 	self->cartridge = cartridge;
@@ -55,8 +55,8 @@ inline nesemu_return_t nes_mem_init(struct nes_main_memory_t *self,
 }
 
 nesemu_return_t nes_mem_w8(struct nes_main_memory_t *self,
-			  uint16_t addr,
-			  uint8_t data)
+			   uint16_t addr,
+			   uint8_t data)
 {
 	// Cartridge address, delegate to cartridge callback
 	if (addr >= NESEMU_MEMORY_RAM_CARTRIDGE_BEGIN) {
@@ -88,8 +88,8 @@ nesemu_return_t nes_mem_w8(struct nes_main_memory_t *self,
 }
 
 nesemu_return_t nes_mem_r8(struct nes_main_memory_t *self,
-			  uint16_t addr,
-			  uint8_t *result)
+			   uint16_t addr,
+			   uint8_t *result)
 {
 	// Cartridge address, delegate to cartridge callback
 	if (addr >= NESEMU_MEMORY_RAM_CARTRIDGE_BEGIN) {
@@ -121,8 +121,8 @@ nesemu_return_t nes_mem_r8(struct nes_main_memory_t *self,
 }
 
 nesemu_return_t nes_mem_w16(struct nes_main_memory_t *self,
-			   uint16_t addr,
-			   uint16_t data)
+			    uint16_t addr,
+			    uint16_t data)
 {
 	// Decompose u16 into two u8
 	uint8_t msb = (data & 0xFF00) >> 8, lsb = (data & 0x00FF);
@@ -142,8 +142,8 @@ nesemu_return_t nes_mem_w16(struct nes_main_memory_t *self,
 }
 
 nesemu_return_t nes_mem_r16(struct nes_main_memory_t *self,
-			   uint16_t addr,
-			   uint16_t *result)
+			    uint16_t addr,
+			    uint16_t *result)
 {
 	// Get the two placeholder bytes
 	uint8_t lsb, msb;

@@ -129,6 +129,8 @@ enum nes_ines_attr_flags_7 {
  * cartridge. In order to provide this functionality, the cartridge structure
  * includes some `callback` function pointers, this callbacks will be called
  * by the `memory` subsystem to read this addresses.
+ *
+ * Beware that CHRROM/CHRRAM should always return `
  */
 struct nes_cartridge_t {
 	/** Variant discriminator */

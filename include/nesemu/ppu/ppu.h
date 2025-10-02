@@ -8,6 +8,9 @@
 #ifndef __NESEMU_PPU_H__
 #define __NESEMU_PPU_H__
 
+#define NESEMU_PPU_SCREEN_HEIGHT 200
+#define NESEMU_PPU_SCREEN_WIDTH 250
+
 /**
  * NES PPU registers
  *

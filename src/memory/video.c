@@ -47,7 +47,7 @@ static inline nesemu_return_t _cartridge_write(struct nes_video_memory_t *self,
 {
 #ifndef CONFIG_NESEMU_DISABLE_SAFETY_CHECKS
 	if (self->cartridge->chr_write_fn == NULL) {
-		return NESEMU_RETURN_CARTRIDGE_NO_CALLBACK;
+		return NESEMU_RETURN_CARTRIDGE_CHRROM_READ_ONLY;
 	}
 #endif
 	return self->cartridge->chr_write_fn(
@@ -115,7 +115,7 @@ nesemu_return_t nes_chr_w8(struct nes_video_memory_t *self,
 	else if (status == NESEMU_INFO_CARTRIDGE_DELEGATE_RWOP) {
 		return self->cartridge->chr_write_fn == NULL ?
 			       // This cartridge is read-only
-			       NESEMU_RETURN_CARTRIDGE_READ_ONLY :
+			       NESEMU_RETURN_CARTRIDGE_CHRROM_READ_ONLY :
 			       // Delegate logic to cartridge
 			       _cartridge_write(self, addr, data);
 	}

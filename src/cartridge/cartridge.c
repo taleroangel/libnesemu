@@ -4,6 +4,7 @@
  * kind of warning for this file */
 
 #include "nesemu/cartridge/cartridge.h"
+#include "nesemu/cartridge/types/common.h"
 #include "nesemu/cartridge/types/mirroring.h"
 #include "nesemu/cartridge/types/nrom.h" /* IWYU pragma: keep */
 
@@ -36,15 +37,20 @@ static const char iNES_header[] = { 'N', 'E', 'S', 0x1A };
  *      nes_ines_<type>_chr_writer,
  *      nes_ines_<type>_chr_mapper,
  *
+ * Beware!. Functions are casted to their corresponding function pointer type,
+ * this is to allow the first parameter to be a reference to a type instead
+ * of a void pointer. If your function signature is incompatible with the
+ * function type, you will get undefined behaviour.
+ *
  */
 #define _CARTRIDGE_CALLBACKS_FOR_TYPE_BOILERPLATE(cartridge, type) \
-	cartridge->prg_load_fn = nes_ines_##type##_prg_loader;     \
-	cartridge->prg_read_fn = nes_ines_##type##_prg_reader;     \
-	cartridge->prg_write_fn = nes_ines_##type##_prg_writer;    \
-	cartridge->chr_load_fn = nes_ines_##type##_chr_loader;     \
-	cartridge->chr_read_fn = nes_ines_##type##_chr_reader;     \
-	cartridge->chr_write_fn = nes_ines_##type##_chr_writer;    \
-	cartridge->chr_mapper_fn = nes_ines_##type##_chr_mapper;
+	cartridge->prg_load_fn = (nes_cartridge_loader_t)nes_ines_##type##_prg_loader;     \
+	cartridge->prg_read_fn = (nes_cartridge_read_t)nes_ines_##type##_prg_reader;     \
+	cartridge->prg_write_fn = (nes_cartridge_write_t)nes_ines_##type##_prg_writer;    \
+	cartridge->chr_load_fn = (nes_cartridge_loader_t)nes_ines_##type##_chr_loader;     \
+	cartridge->chr_read_fn = (nes_cartridge_read_t)nes_ines_##type##_chr_reader;     \
+	cartridge->chr_write_fn = (nes_cartridge_write_t)nes_ines_##type##_chr_writer;    \
+	cartridge->chr_mapper_fn = (nes_cartridge_mapper_t)nes_ines_##type##_chr_mapper;
 
 /* -- Definitions for `cartridge.h` declarations -- */
 
