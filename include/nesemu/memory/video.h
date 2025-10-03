@@ -41,7 +41,7 @@
  * @note Pattern tables live in the cartridge, no memory allocated for them
  * here!.
  */
-struct nes_video_memory_t {
+typedef struct nes_mem_video {
 
     /**
      * Console internal CIRAM (Nametables and Attribute Tables).
@@ -73,14 +73,15 @@ struct nes_video_memory_t {
      * CHRROM/CHRRAM section, r/w operations to those addresses will be 
      * delegated to the cartridge callbacks.
      */
-	struct nes_cartridge_t *cartridge;
-};
+	struct nes_cartridge *cartridge;
+
+} nes_mem_video_t ;
 
 /**
  * Initialize memory to its initial state 
  */
-nesemu_return_t nes_chr_init(struct nes_video_memory_t *self,
-			    struct nes_cartridge_t *cartridge);
+nesemu_return_t nes_chr_init(struct nes_mem_video *self,
+			    struct nes_cartridge *cartridge);
 
 /**
  * Write 8 bits in memory at `addr`
@@ -89,7 +90,7 @@ nesemu_return_t nes_chr_init(struct nes_video_memory_t *self,
  * @param addr Memory address
  * @param data Data to be pushed onto memory
  */
-nesemu_return_t nes_chr_w8(struct nes_video_memory_t *self,
+nesemu_return_t nes_chr_w8(struct nes_mem_video *self,
 			  uint16_t addr,
 			  uint8_t data);
 
@@ -100,7 +101,7 @@ nesemu_return_t nes_chr_w8(struct nes_video_memory_t *self,
  * @param addr Memory address
  * @param result Reference to where the result will be stored
  */
-nesemu_return_t nes_chr_r8(struct nes_video_memory_t *self,
+nesemu_return_t nes_chr_r8(struct nes_mem_video *self,
 			  uint16_t addr,
 			  uint8_t *result);
 
@@ -111,7 +112,7 @@ nesemu_return_t nes_chr_r8(struct nes_video_memory_t *self,
  * @param addr Memory address (should not be last memory position)
  * @param data Data to be pushed onto memory
  */
-nesemu_return_t nes_chr_w16(struct nes_video_memory_t *self,
+nesemu_return_t nes_chr_w16(struct nes_mem_video *self,
 			   uint16_t addr,
 			   uint16_t data);
 
@@ -122,7 +123,7 @@ nesemu_return_t nes_chr_w16(struct nes_video_memory_t *self,
  * @param addr Memory address (should not be last memory position)
  * @param result Reference to where the result will be stored
  */
-nesemu_return_t nes_chr_r16(struct nes_video_memory_t *memself,
+nesemu_return_t nes_chr_r16(struct nes_mem_video *memself,
 			   uint16_t addr,
 			   uint16_t *result);
 

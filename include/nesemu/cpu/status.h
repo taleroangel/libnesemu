@@ -9,7 +9,7 @@
 /**
  * Bitmasks for the CPU status flags
  */
-enum cpu_status_t {
+enum nes_cpu_status {
 	NESEMU_CPU_FLAGS_C = 0x01, /**< Carry */
 	NESEMU_CPU_FLAGS_Z = 0x02, /**< Zero */
 	NESEMU_CPU_FLAGS_I = 0x04, /**< Interrupt disable */

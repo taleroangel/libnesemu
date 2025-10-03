@@ -5,7 +5,7 @@
 #include <stddef.h>
 #include <stdint.h>
 
-nesemu_return_t nes_stack_push_u8(struct nes_main_memory_t *mem,
+nesemu_return_t nes_stack_push_u8(struct nes_mem_main *mem,
 				 uint8_t *sp,
 				 uint8_t value)
 {
@@ -23,7 +23,7 @@ nesemu_return_t nes_stack_push_u8(struct nes_main_memory_t *mem,
 	return err;
 }
 
-nesemu_return_t nes_stack_pop_u8(struct nes_main_memory_t *mem,
+nesemu_return_t nes_stack_pop_u8(struct nes_mem_main *mem,
 				uint8_t *sp,
 				uint8_t *result)
 {
@@ -42,7 +42,7 @@ nesemu_return_t nes_stack_pop_u8(struct nes_main_memory_t *mem,
 	return nes_mem_r8(mem, addr, result);
 }
 
-nesemu_return_t nes_stack_push_u16(struct nes_main_memory_t *mem,
+nesemu_return_t nes_stack_push_u16(struct nes_mem_main *mem,
 				  uint8_t *sp,
 				  uint16_t value)
 {
@@ -63,7 +63,7 @@ nesemu_return_t nes_stack_push_u16(struct nes_main_memory_t *mem,
 	return err;
 }
 
-nesemu_return_t nes_stack_pop_u16(struct nes_main_memory_t *mem,
+nesemu_return_t nes_stack_pop_u16(struct nes_mem_main *mem,
 				 uint8_t *sp,
 				 uint16_t *result)
 {

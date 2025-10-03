@@ -39,7 +39,7 @@ int read_cartridge(uint8_t **cdata, size_t *len);
 /**
  * Run the test with already initialized hardware
  */
-int run(struct nes_main_memory_t *mem, struct nes_cpu_t *cpu);
+int run(struct nes_mem_main *mem, struct nes_cpu *cpu);
 
 /* Entry point */
 
@@ -58,7 +58,7 @@ int main(void)
     /* -- Load cartridge -- */
 
     // Create cartridge
-    struct nes_cartridge_t cartridge;
+    struct nes_cartridge cartridge;
 
 	// Load cdata
 	size_t clen = 0;
@@ -91,7 +91,7 @@ int main(void)
 	/* -- Memory initialization -- */
 
 	// Initialize memory
-	struct nes_main_memory_t mem;
+	struct nes_mem_main mem;
 	err = nes_mem_init(&mem, &cartridge);
 	if (err != NESEMU_RETURN_SUCCESS) {
 		fprintf(stderr,
@@ -103,7 +103,7 @@ int main(void)
 	printf("Successful NESEMU memory initialization\n");	
 
 	/* -- CPU Initialization -- */
-	struct nes_cpu_t cpu;
+	struct nes_cpu cpu;
 	err = nes_cpu_init(&cpu, &mem);
 	if (err != NESEMU_RETURN_SUCCESS) {
 		fprintf(stderr,
@@ -124,7 +124,7 @@ int main(void)
 	return EXIT_SUCCESS;
 }
 
-int run(struct nes_main_memory_t *mem, struct nes_cpu_t *cpu)
+int run(struct nes_mem_main *mem, struct nes_cpu *cpu)
 {
 	nesemu_return_t err = NESEMU_RETURN_SUCCESS;
 	long int tcycles = 0, tinstructions = 0;

@@ -16,7 +16,7 @@ extern const uint8_t nes_cpu_op_cycles[256];
 /**
  * CPU addressing modes
  */
-enum nes_cpu_addressing_mode_t {
+enum nes_cpu_addressing_mode {
 	NESEMU_ADDRESSING_ACCUMULATOR,
 	NESEMU_ADDRESSING_IMMEDIATE,
 	NESEMU_ADDRESSING_ZERO_PAGE,
@@ -33,7 +33,7 @@ enum nes_cpu_addressing_mode_t {
 /**
  * CPU interrupt vector addresses
  */
-enum nes_cpu_interrupt_vector_t {
+enum nes_cpu_interrupt_vector {
 	NESEMU_CPU_VECTOR_NMI = 0xFFFA,
 	NESEMU_CPU_VECTOR_RESET = 0xFFFC,
 	NESEMU_CPU_VECTOR_IRQ = 0xFFFE,
@@ -53,7 +53,7 @@ enum nes_cpu_interrupt_vector_t {
  * _IX = (Indirect,X)
  * _IY = (Indirect),Y
  */
-enum nes_cpu_instructions_t {
+enum nes_cpu_instruction_set {
 
 	/* Load/Store Operations */
 	LDA_IM = 0xA9,

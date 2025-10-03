@@ -10,7 +10,7 @@
 #define __NESEMU_CARTRIDGE_NROM_GET_ADDR(addr) \
 	(addr % NESEMU_CARTRIDGE_PRGROM_BANK_SIZE)
 
-nesemu_return_t nes_ines_nrom_prg_loader(struct nes_ines_nrom_cartridge_t *self,
+nesemu_return_t nes_ines_nrom_prg_loader(struct nes_ines_nrom_cartridge *self,
 					 uint8_t *cdata,
 					 size_t len)
 {
@@ -19,7 +19,7 @@ nesemu_return_t nes_ines_nrom_prg_loader(struct nes_ines_nrom_cartridge_t *self,
 	return NESEMU_RETURN_SUCCESS;
 }
 
-nesemu_return_t nes_ines_nrom_prg_reader(struct nes_ines_nrom_cartridge_t *self,
+nesemu_return_t nes_ines_nrom_prg_reader(struct nes_ines_nrom_cartridge *self,
 					 uint16_t addr,
 					 uint8_t *content)
 {
@@ -36,7 +36,7 @@ nesemu_return_t nes_ines_nrom_prg_reader(struct nes_ines_nrom_cartridge_t *self,
 	return NESEMU_RETURN_SUCCESS;
 }
 
-nesemu_return_t nes_ines_nrom_chr_loader(struct nes_ines_nrom_cartridge_t *self,
+nesemu_return_t nes_ines_nrom_chr_loader(struct nes_ines_nrom_cartridge *self,
 					 uint8_t *cdata,
 					 size_t len)
 {
@@ -44,7 +44,7 @@ nesemu_return_t nes_ines_nrom_chr_loader(struct nes_ines_nrom_cartridge_t *self,
 	return NESEMU_RETURN_SUCCESS;
 }
 
-nesemu_return_t nes_ines_nrom_chr_reader(struct nes_ines_nrom_cartridge_t *self,
+nesemu_return_t nes_ines_nrom_chr_reader(struct nes_ines_nrom_cartridge *self,
 					 uint16_t addr,
 					 uint8_t *content)
 {

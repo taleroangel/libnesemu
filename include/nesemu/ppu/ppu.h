@@ -31,20 +31,20 @@ typedef uint8_t nes_display_t[NESEMU_PPU_BUFFER_SIZE];
 /**
  * Picture Processing Unit (NTSC only!)
  */
-typedef struct nes_ppu_t {
+typedef struct nes_ppu {
 	uint16_t scanline; /**< Index for the current scanline */
 	uint16_t rasterline; /**< Index for the current horizontal pixel in scanline */
 	uint8_t odd; /** Either 1 or 0, 1 on every odd frame */
 
-    nes_oam_t oam; /** Primary OAM */
-    nes_oam_t s_oam; /** Secondary OAM */
+    nes_ppu_oam_t oam; /** Primary OAM */
+    nes_ppu_oam_t s_oam; /** Secondary OAM */
 } nes_ppu_t;
 
 /**
  * Initialize the PPU and its memory
  */
-nesemu_return_t nes_ppu_init(struct nes_ppu_t *self,
-			     struct nes_main_memory_t *mem);
+nesemu_return_t nes_ppu_init(struct nes_ppu *self,
+			     struct nes_mem_main *mem);
 
 /**
  * Render, exactly 1 pixel.
@@ -56,10 +56,10 @@ nesemu_return_t nes_ppu_init(struct nes_ppu_t *self,
  * @param vim Video memory bus
  * @param cycles Reference to an integer where the amount of PPU cycles the operation took
  */
-nesemu_return_t nes_ppu_render(struct nes_ppu_t *self,
+nesemu_return_t nes_ppu_render(struct nes_ppu *self,
 			       nes_display_t *display,
-			       struct nes_main_memory_t *mem,
-			       struct nes_video_memory_t *vim,
+			       struct nes_mem_main *mem,
+			       struct nes_mem_video *vim,
 			       int *cycles);
 
 /**

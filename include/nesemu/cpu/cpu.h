@@ -33,7 +33,7 @@
  *
  * @note This is a little-endian processor
  */
-typedef struct nes_cpu_t {
+typedef struct nes_cpu {
 	/* Registers */
 	uint16_t pc; /**< Program Counter */
 	uint8_t sp; /**< Stack Pointer */
@@ -54,14 +54,14 @@ typedef struct nes_cpu_t {
  * @note Initialize CPU last! after every other subsystem
  * @note Cartridge must be already loaded! Complete memory map is required
  */
-nesemu_return_t nes_cpu_init(struct nes_cpu_t *self,
-			     struct nes_main_memory_t *mem);
+nesemu_return_t nes_cpu_init(struct nes_cpu *self,
+			     struct nes_mem_main *mem);
 
 /**
  * Restart the CPU, like pressing the restart button
  */
-nesemu_return_t nes_cpu_reset(struct nes_cpu_t *self,
-			      struct nes_main_memory_t *mem);
+nesemu_return_t nes_cpu_reset(struct nes_cpu *self,
+			      struct nes_mem_main *mem);
 
 /**
  * Process the next instruction (will only process 1 instruction and then return)
@@ -73,19 +73,19 @@ nesemu_return_t nes_cpu_reset(struct nes_cpu_t *self,
  *
  * @note Will execute the instruction at $PC and then return
  */
-nesemu_return_t nes_cpu_next(struct nes_cpu_t *self,
-			     struct nes_main_memory_t *mem,
+nesemu_return_t nes_cpu_next(struct nes_cpu *self,
+			     struct nes_mem_main *mem,
 			     int *cycles);
 
 /**
  * Fetch the next word from memory at $pc and increment $pc
  */
-uint8_t nes_cpu_fetch(struct nes_cpu_t *self, struct nes_main_memory_t *mem);
+uint8_t nes_cpu_fetch(struct nes_cpu *self, struct nes_mem_main *mem);
 
 /**
  * Set CPU status register given a bit mask
  */
-static inline void nes_cpu_status_mask_set(struct nes_cpu_t *self, uint8_t mask)
+static inline void nes_cpu_status_mask_set(struct nes_cpu *self, uint8_t mask)
 {
 	self->status = NESEMU_CPU_STATUS_SET_MASK(self->status, mask);
 }
@@ -93,7 +93,7 @@ static inline void nes_cpu_status_mask_set(struct nes_cpu_t *self, uint8_t mask)
 /**
  * Remove CPU status flags given a bit mask
  */
-static inline void nes_cpu_status_mask_unset(struct nes_cpu_t *self,
+static inline void nes_cpu_status_mask_unset(struct nes_cpu *self,
 					     uint8_t mask)
 {
 	self->status = NESEMU_CPU_STATUS_UNSET_MASK(self->status, mask);

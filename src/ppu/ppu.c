@@ -2,7 +2,6 @@
 #include "nesemu/memory/main.h"
 #include "nesemu/util/error.h"
 
-#include <string.h>
 #include <stdlib.h>
 
 /**
@@ -44,7 +43,7 @@ union nes_ppu_framebuffer_t {
 #define NESEMU_PPU_NTSC_PRERENDER_SCANLINE 261
 
 /* --- Function Definition --- */
-nesemu_return_t nes_ppu_init(struct nes_ppu_t *self, struct nes_main_memory_t *mem)
+nesemu_return_t nes_ppu_init(struct nes_ppu *self, struct nes_mem_main *mem)
 {
     nesemu_return_t err = NESEMU_RETURN_SUCCESS;
 
@@ -60,10 +59,10 @@ nesemu_return_t nes_ppu_init(struct nes_ppu_t *self, struct nes_main_memory_t *m
 	return err;
 }
 
-nesemu_return_t nes_ppu_render(struct nes_ppu_t *self,
+nesemu_return_t nes_ppu_render(struct nes_ppu *self,
 			       nes_display_t *display,
-			       struct nes_main_memory_t *mem,
-			       struct nes_video_memory_t *vim,
+			       struct nes_mem_main *mem,
+			       struct nes_mem_video *vim,
 			       int *cycles)
 {
     // Set number of cycles operation took

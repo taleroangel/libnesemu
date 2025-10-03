@@ -68,7 +68,7 @@
  *
  * Functions related to this memory type are named with `mem`
  */
-typedef struct nes_main_memory_t {
+typedef struct nes_mem_main {
 	/**
      * Raw memory array. Should not be accessed directly.
      *
@@ -90,15 +90,15 @@ typedef struct nes_main_memory_t {
 	/**
      * Reference to the game cartridge. Should already be initialized.
      */
-	struct nes_cartridge_t *cartridge;
+	struct nes_cartridge *cartridge;
 
-} nes_mem_t ;
+} nes_mem_main_t;
 
 /**
  * Initialize memory to its initial state 
  */
-nesemu_return_t nes_mem_init(struct nes_main_memory_t *self,
-			    struct nes_cartridge_t *cartridge);
+nesemu_return_t nes_mem_init(struct nes_mem_main *self,
+			     struct nes_cartridge *cartridge);
 
 /**
  * Write 8 bits in memory at `addr`
@@ -107,9 +107,9 @@ nesemu_return_t nes_mem_init(struct nes_main_memory_t *self,
  * @param addr Memory address
  * @param data Data to be pushed onto memory
  */
-nesemu_return_t nes_mem_w8(struct nes_main_memory_t *self,
-			  uint16_t addr,
-			  uint8_t data);
+nesemu_return_t nes_mem_w8(struct nes_mem_main *self,
+			   uint16_t addr,
+			   uint8_t data);
 
 /**
  * Read 8 bits from memory at `addr`
@@ -118,9 +118,9 @@ nesemu_return_t nes_mem_w8(struct nes_main_memory_t *self,
  * @param addr Memory address
  * @param result Reference to where the result will be stored
  */
-nesemu_return_t nes_mem_r8(struct nes_main_memory_t *self,
-			  uint16_t addr,
-			  uint8_t *result);
+nesemu_return_t nes_mem_r8(struct nes_mem_main *self,
+			   uint16_t addr,
+			   uint8_t *result);
 
 /**
  * Write 16 bits in memory at `addr`
@@ -129,9 +129,9 @@ nesemu_return_t nes_mem_r8(struct nes_main_memory_t *self,
  * @param addr Memory address (should not be last memory position)
  * @param data Data to be pushed onto memory
  */
-nesemu_return_t nes_mem_w16(struct nes_main_memory_t *self,
-			   uint16_t addr,
-			   uint16_t data);
+nesemu_return_t nes_mem_w16(struct nes_mem_main *self,
+			    uint16_t addr,
+			    uint16_t data);
 
 /**
  * Read 16 bits from memory at `addr`
@@ -140,8 +140,8 @@ nesemu_return_t nes_mem_w16(struct nes_main_memory_t *self,
  * @param addr Memory address (should not be last memory position)
  * @param result Reference to where the result will be stored
  */
-nesemu_return_t nes_mem_r16(struct nes_main_memory_t *self,
-			   uint16_t addr,
-			   uint16_t *result);
+nesemu_return_t nes_mem_r16(struct nes_mem_main *self,
+			    uint16_t addr,
+			    uint16_t *result);
 
 #endif

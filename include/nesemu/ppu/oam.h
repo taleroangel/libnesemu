@@ -9,7 +9,7 @@
 /**
  * Structure of a single entry in the OAM
  */
-struct nes_sprite_data_t {
+struct nes_ppu_sprite_data {
 	uint8_t y;
 	uint8_t tile;
 	uint8_t attr;
@@ -17,6 +17,6 @@ struct nes_sprite_data_t {
 } __attribute__((packed));
 
 /** Object Attrubute Memory (OAM) */
-typedef struct nes_sprite_data_t nes_oam_t[NESEMU_PPU_OAM_SPRITES];
+typedef struct nes_ppu_sprite_data nes_ppu_oam_t[NESEMU_PPU_OAM_SPRITES];
 
 #endif

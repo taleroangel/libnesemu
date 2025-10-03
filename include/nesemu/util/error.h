@@ -8,13 +8,12 @@
  * Code =0  -> Success,
  * Code >0  -> Information
  */
-typedef enum nesemu_return_t {
+typedef enum nesemu_return {
 
 	/* --- Generic Errors --- */
 	NESEMU_RETURN_SUCCESS = 0, /**< Operation success */
-	NESEMU_RETURN_GENERIC_ERROR = -1, /**< Unknown error (check errno) */
-	NESEMU_RETURN_BAD_ARGUMENTS =
-		-2, /**< Wrong arguments for function call */
+	NESEMU_RETURN_GENERIC_ERROR = -1, /**< Unknown error (check errno if available) */
+	NESEMU_RETURN_BAD_ARGUMENTS = -2, /**< Wrong arguments for function call */
 
 	/* --- Memory --- */
 	NESEMU_RETURN_MEMORY_INVALILD_ADDR = -0x10,

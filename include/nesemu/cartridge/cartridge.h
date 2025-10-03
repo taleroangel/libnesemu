@@ -57,8 +57,8 @@
 /**
  * Variant type for iNES cartridge mappers
  */
-union nes_ines_mapper_t {
-	struct nes_ines_nrom_cartridge_t nrom; /**< NROM (0) */
+union nes_ines_mapper {
+	struct nes_ines_nrom_cartridge nrom; /**< NROM (0) */
 
 	/**
      * Just an empty field for type punning :)
@@ -132,13 +132,13 @@ enum nes_ines_attr_flags_7 {
  *
  * Beware that CHRROM/CHRRAM should always return `
  */
-typedef struct nes_cartridge_t {
+typedef struct nes_cartridge {
 
 	/** Variant discriminator */
 	enum nes_ines_mapper_variant type;
 
 	/** Variant type */
-	union nes_ines_mapper_t mapper;
+	union nes_ines_mapper mapper;
 
 	/* -- Mapper Callbacks -- */
 
@@ -212,7 +212,7 @@ typedef struct nes_cartridge_t {
  * structure.
  * @note Do this before the CPU is initialized.
  */
-nesemu_return_t nes_cartridge_read_ines(struct nes_cartridge_t *cartridge,
+nesemu_return_t nes_cartridge_read_ines(struct nes_cartridge *cartridge,
 					uint8_t *data,
 					size_t len);
 

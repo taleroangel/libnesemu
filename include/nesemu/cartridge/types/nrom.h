@@ -17,7 +17,7 @@
 /**
  * NROM cartridge memory layout
  */
-struct nes_ines_nrom_cartridge_t {
+struct nes_ines_nrom_cartridge {
 	/**
      * Single memory bank for PRGROM in the cartridge.
      */
@@ -31,22 +31,22 @@ struct nes_ines_nrom_cartridge_t {
 
 /* -- Callbacks -- */
 
-nesemu_return_t nes_ines_nrom_prg_loader(struct nes_ines_nrom_cartridge_t *self,
+nesemu_return_t nes_ines_nrom_prg_loader(struct nes_ines_nrom_cartridge *self,
 					 uint8_t *cdata,
 					 size_t len);
 
-nesemu_return_t nes_ines_nrom_prg_reader(struct nes_ines_nrom_cartridge_t *self,
+nesemu_return_t nes_ines_nrom_prg_reader(struct nes_ines_nrom_cartridge *self,
 					 uint16_t addr,
 					 uint8_t *content);
 
 /* No PRG writer as there is no external vram nor PRGRAM in this mapping */
 #define nes_ines_nrom_prg_writer NULL;
 
-nesemu_return_t nes_ines_nrom_chr_loader(struct nes_ines_nrom_cartridge_t *self,
+nesemu_return_t nes_ines_nrom_chr_loader(struct nes_ines_nrom_cartridge *self,
 					 uint8_t *cdata,
 					 size_t len);
 
-nesemu_return_t nes_ines_nrom_chr_reader(struct nes_ines_nrom_cartridge_t *self,
+nesemu_return_t nes_ines_nrom_chr_reader(struct nes_ines_nrom_cartridge *self,
 					 uint16_t addr,
 					 uint8_t *content);
 

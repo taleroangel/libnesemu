@@ -7,11 +7,11 @@
 #include <stdint.h>
 #include <string.h>
 
-nesemu_return_t nes_cpu_init(struct nes_cpu_t *self,
-			    struct nes_main_memory_t *mem)
+nesemu_return_t nes_cpu_init(struct nes_cpu *self,
+			    struct nes_mem_main *mem)
 {
 	// Set every regsiter to 0, simulating booting from power off
-	memset(self, 0, sizeof(struct nes_cpu_t));
+	memset(self, 0, sizeof(struct nes_cpu));
 	// Set the program counter to the addr at the CPU reset vector
 	nes_mem_r16(mem, NESEMU_CPU_VECTOR_RESET, &self->pc);
 
@@ -22,8 +22,8 @@ nesemu_return_t nes_cpu_init(struct nes_cpu_t *self,
 	return NESEMU_RETURN_SUCCESS;
 }
 
-nesemu_return_t nes_cpu_reset(struct nes_cpu_t *self,
-			     struct nes_main_memory_t *mem)
+nesemu_return_t nes_cpu_reset(struct nes_cpu *self,
+			     struct nes_mem_main *mem)
 {
 	// Set the program counter to the addr at the CPU reset vector
 	nes_mem_r16(mem, NESEMU_CPU_VECTOR_RESET, &self->pc);
@@ -36,8 +36,8 @@ nesemu_return_t nes_cpu_reset(struct nes_cpu_t *self,
 	return NESEMU_RETURN_SUCCESS;
 }
 
-inline uint8_t nes_cpu_fetch(struct nes_cpu_t *self,
-			     struct nes_main_memory_t *mem)
+inline uint8_t nes_cpu_fetch(struct nes_cpu *self,
+			     struct nes_mem_main *mem)
 {
 	// Get next instruction, no fail
 	uint8_t result;

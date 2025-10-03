@@ -54,7 +54,7 @@ static const char iNES_header[] = { 'N', 'E', 'S', 0x1A };
 
 /* -- Definitions for `cartridge.h` declarations -- */
 
-nesemu_return_t nes_cartridge_read_ines(struct nes_cartridge_t *cartridge,
+nesemu_return_t nes_cartridge_read_ines(struct nes_cartridge *cartridge,
 					uint8_t *data,
 					size_t len)
 {
@@ -65,7 +65,7 @@ nesemu_return_t nes_cartridge_read_ines(struct nes_cartridge_t *cartridge,
 #endif
 
 	// Initialize cartridge
-	memset(cartridge, 0, sizeof(struct nes_cartridge_t));
+	memset(cartridge, 0, sizeof(struct nes_cartridge));
 
 	// Error code
 	nesemu_return_t err = NESEMU_RETURN_SUCCESS;

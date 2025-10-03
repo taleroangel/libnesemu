@@ -24,7 +24,7 @@
 /**
  * Syntax sugar around cartridge reader
  */
-static inline nesemu_return_t _cartridge_read(struct nes_video_memory_t *self,
+static inline nesemu_return_t _cartridge_read(struct nes_mem_video *self,
 					      uint16_t addr,
 					      uint8_t *value)
 {
@@ -41,7 +41,7 @@ static inline nesemu_return_t _cartridge_read(struct nes_video_memory_t *self,
 /**
  * Syntax sugar around cartridge writer
  */
-static inline nesemu_return_t _cartridge_write(struct nes_video_memory_t *self,
+static inline nesemu_return_t _cartridge_write(struct nes_mem_video *self,
 					       uint16_t addr,
 					       uint8_t value)
 {
@@ -55,7 +55,7 @@ static inline nesemu_return_t _cartridge_write(struct nes_video_memory_t *self,
 		value);
 }
 
-static inline nesemu_return_t _cartridge_mapping(struct nes_video_memory_t *self,
+static inline nesemu_return_t _cartridge_mapping(struct nes_mem_video *self,
 						 uint16_t addr,
 						 uint16_t *mapped)
 {
@@ -71,16 +71,16 @@ static inline nesemu_return_t _cartridge_mapping(struct nes_video_memory_t *self
 
 /* -- Public Functions -- */
 
-nesemu_return_t nes_chr_init(struct nes_video_memory_t *self,
-			     struct nes_cartridge_t *cartridge)
+nesemu_return_t nes_chr_init(struct nes_mem_video *self,
+			     struct nes_cartridge *cartridge)
 {
-	(void)memset(self, 0, sizeof(struct nes_video_memory_t));
+	(void)memset(self, 0, sizeof(struct nes_mem_video));
 	self->cartridge = cartridge;
 
 	return NESEMU_RETURN_SUCCESS;
 }
 
-nesemu_return_t nes_chr_w8(struct nes_video_memory_t *self,
+nesemu_return_t nes_chr_w8(struct nes_mem_video *self,
 			   uint16_t addr,
 			   uint8_t data)
 {
@@ -137,7 +137,7 @@ nesemu_return_t nes_chr_w8(struct nes_video_memory_t *self,
 	return status;
 }
 
-nesemu_return_t nes_chr_r8(struct nes_video_memory_t *self,
+nesemu_return_t nes_chr_r8(struct nes_mem_video *self,
 			   uint16_t addr,
 			   uint8_t *result)
 {
@@ -191,7 +191,7 @@ nesemu_return_t nes_chr_r8(struct nes_video_memory_t *self,
 	return status;
 }
 
-nesemu_return_t nes_chr_w16(struct nes_video_memory_t *self,
+nesemu_return_t nes_chr_w16(struct nes_mem_video *self,
 			    uint16_t addr,
 			    uint16_t data)
 {
@@ -214,7 +214,7 @@ nesemu_return_t nes_chr_w16(struct nes_video_memory_t *self,
 	return NESEMU_RETURN_SUCCESS;
 }
 
-nesemu_return_t nes_chr_r16(struct nes_video_memory_t *self,
+nesemu_return_t nes_chr_r16(struct nes_mem_video *self,
 			    uint16_t addr,
 			    uint16_t *result)
 {

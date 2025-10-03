@@ -12,7 +12,7 @@
 /**
  * Syntax sugar around cartridge reader
  */
-static inline nesemu_return_t _cartridge_read(struct nes_main_memory_t *mem,
+static inline nesemu_return_t _cartridge_read(struct nes_mem_main *mem,
 					      uint16_t addr,
 					      uint8_t *value)
 {
@@ -29,7 +29,7 @@ static inline nesemu_return_t _cartridge_read(struct nes_main_memory_t *mem,
 /**
  * Syntax sugar around cartridge writer
  */
-static inline nesemu_return_t _cartridge_write(struct nes_main_memory_t *mem,
+static inline nesemu_return_t _cartridge_write(struct nes_mem_main *mem,
 					       uint16_t addr,
 					       uint8_t value)
 {
@@ -45,16 +45,16 @@ static inline nesemu_return_t _cartridge_write(struct nes_main_memory_t *mem,
 
 /* -- Public Functions -- */
 
-inline nesemu_return_t nes_mem_init(struct nes_main_memory_t *self,
-				    struct nes_cartridge_t *cartridge)
+inline nesemu_return_t nes_mem_init(struct nes_mem_main *self,
+				    struct nes_cartridge *cartridge)
 {
-	memset(self, 0, sizeof(struct nes_main_memory_t));
+	memset(self, 0, sizeof(struct nes_mem_main));
 	self->cartridge = cartridge;
 
 	return NESEMU_RETURN_SUCCESS;
 }
 
-nesemu_return_t nes_mem_w8(struct nes_main_memory_t *self,
+nesemu_return_t nes_mem_w8(struct nes_mem_main *self,
 			   uint16_t addr,
 			   uint8_t data)
 {
@@ -87,7 +87,7 @@ nesemu_return_t nes_mem_w8(struct nes_main_memory_t *self,
 	return NESEMU_RETURN_SUCCESS;
 }
 
-nesemu_return_t nes_mem_r8(struct nes_main_memory_t *self,
+nesemu_return_t nes_mem_r8(struct nes_mem_main *self,
 			   uint16_t addr,
 			   uint8_t *result)
 {
@@ -120,7 +120,7 @@ nesemu_return_t nes_mem_r8(struct nes_main_memory_t *self,
 	return NESEMU_RETURN_SUCCESS;
 }
 
-nesemu_return_t nes_mem_w16(struct nes_main_memory_t *self,
+nesemu_return_t nes_mem_w16(struct nes_mem_main *self,
 			    uint16_t addr,
 			    uint16_t data)
 {
@@ -141,7 +141,7 @@ nesemu_return_t nes_mem_w16(struct nes_main_memory_t *self,
 	return NESEMU_RETURN_SUCCESS;
 }
 
-nesemu_return_t nes_mem_r16(struct nes_main_memory_t *self,
+nesemu_return_t nes_mem_r16(struct nes_mem_main *self,
 			    uint16_t addr,
 			    uint16_t *result)
 {
