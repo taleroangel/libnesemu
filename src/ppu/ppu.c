@@ -1,5 +1,6 @@
 #include "nesemu/ppu/ppu.h"
 #include "nesemu/memory/main.h"
+#include "nesemu/ppu/palette.h"
 #include "nesemu/util/error.h"
 
 #include <stdlib.h>
@@ -9,17 +10,18 @@
  *
  * @note Only for type punning.
  */
-union nes_ppu_framebuffer_t {
+union nes_ppu_framebuffer {
 
 	/** Framebuffer (RGB24 Format) as raw bytes */
 	nes_display_t bytes;
 
 	/** Framebuffer in RGB24 components representation */
-	struct rgb24_t {
+	struct nes_ppu_rgb24 {
 		uint8_t r;
 		uint8_t g;
 		uint8_t b;
-	} rgb24[NESEMU_PPU_SCREEN_HEIGHT * NESEMU_PPU_SCREEN_WIDTH];
+	} __attribute__((packed))
+	rgb24[NESEMU_PPU_SCREEN_HEIGHT * NESEMU_PPU_SCREEN_WIDTH];
 };
 
 /* --- Constants --- */
@@ -43,13 +45,27 @@ union nes_ppu_framebuffer_t {
 #define NESEMU_PPU_NTSC_PRERENDER_SCANLINE 261
 
 /* --- Function Definition --- */
-nesemu_return_t nes_ppu_init(struct nes_ppu *self, struct nes_mem_main *mem)
+nesemu_return_t nes_ppu_init(struct nes_ppu *self,
+			     nes_ppu_palette_t *system_palette,
+			     struct nes_mem_main *mem)
 {
-    nesemu_return_t err = NESEMU_RETURN_SUCCESS;
+	nesemu_return_t err = NESEMU_RETURN_SUCCESS;
 
-    // Start with the pre-render scanline (scanline -1)
+#ifndef NESEMU_DISABLE_SAFETY_CHECKS
+    if (mem == NULL) {
+        return NESEMU_RETURN_BAD_ARGUMENTS;
+    }
+    if (system_palette == NULL) {
+        return NESEMU_RETURN_PPU_BAD_PALETTE;
+    }
+#endif
+
+    // Set system palette
+    self->system_palette = system_palette;
+
+	// Start with the pre-render scanline (scanline -1)
 	self->scanline = NESEMU_PPU_NTSC_PRERENDER_SCANLINE;
-    self->rasterline = 0;
+    self->dot = 0;
 
     // Set PPUSTATUS initial status
     // Other flags are 0 so no additional initialization required
@@ -70,11 +86,12 @@ nesemu_return_t nes_ppu_render(struct nes_ppu *self,
 
     /* Visible scanlines */
     if (self->scanline <= NESEMU_PPU_NTSC_RENDERING_SCANLINES) {
-        if (self->rasterline == 0) {
+        /* Skip, Idle */
+        if (self->dot == 0) {
         }
-        else if (self->rasterline <= 256) {
+        else if (self->dot <= 256) {
         }
-        else if (self->rasterline <= 336) {
+        else if (self->dot <= 336) {
         }
         else {
         }
@@ -82,7 +99,7 @@ nesemu_return_t nes_ppu_render(struct nes_ppu *self,
     /* Idle section */
     else if (self->scanline == NESEMU_PPU_NTSC_IDLE_SCANLINE) {
         // Fast-forward to next scanline
-        self->rasterline = 0;
+        self->dot = 0;
         self->scanline += 1;
         *cycles = NESEMU_PPU_NTSC_DOTS_PER_SCANLINE;
 
@@ -96,15 +113,15 @@ nesemu_return_t nes_ppu_render(struct nes_ppu *self,
     }
 
     // Next rasterline, rollback to 0 on scanline end
-    self->rasterline = (self->rasterline + 1) % NESEMU_PPU_NTSC_DOTS_PER_SCANLINE;
+    self->dot = (self->dot + 1) % NESEMU_PPU_NTSC_DOTS_PER_SCANLINE;
     // Next scanline on rasterline completion, else keep same scanline
-    self->scanline = (self->rasterline == 0) ?
+    self->scanline = (self->dot == 0) ?
 			     (self->scanline + 1) % NESEMU_PPU_NTSC_SCANLINES :
 			     self->scanline;
     // On frame completion, switch to 1 or 0 
-    self->odd = (self->scanline == 0) && (self->rasterline == 0) ?
-			self->odd ^ 1 :
-			self->odd;
+    self->frame = (self->scanline == 0) && (self->dot == 0) ?
+			self->frame ^ 1 :
+			self->frame;
 
     return EXIT_SUCCESS;
 }

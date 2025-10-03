@@ -1,5 +1,4 @@
 /* -- Standard Libraries -- */
-#include <stdatomic.h>
 #include <stddef.h>
 #include <stdint.h>
 #include <stdlib.h>
@@ -9,7 +8,9 @@
 #include <nesemu/util/error.h>
 #include <nesemu/cartridge/cartridge.h>
 #include <nesemu/memory/main.h>
+#include <nesemu/memory/video.h>
 #include <nesemu/cpu/cpu.h>
+#include <nesemu/ppu/ppu.h>
 
 /**
  * Read cartridge raw data bytes from file
@@ -54,19 +55,35 @@ int main(int argc, char *argv[])
     }
 
     /* Initialize memory */
-    nes_mem_t mem;
+    nes_mem_main_t mem;
     if ((err = nes_mem_init(&mem, &cartridge)) != NESEMU_RETURN_SUCCESS) {
-        fprintf(stderr, "Failed to initialize memory, code = %04X", err);
+        fprintf(stderr, "Failed to initialize main memory, code = %04X", err);
+        return EXIT_FAILURE;
+    }
+
+    nes_mem_video_t vim;
+    if ((err = nes_chr_init(&vim, &cartridge)) != NESEMU_RETURN_SUCCESS) {
+        fprintf(stderr, "Failed to initialize video memory, code = %04X", err);
         return EXIT_FAILURE;
     }
 
     /* Initialize CPU */
     nes_cpu_t cpu;
     if ((err = nes_cpu_init(&cpu, &mem)) != NESEMU_RETURN_SUCCESS) {
-        fprintf(stderr, "Failed to initialize memory, code = %04X", err);
+        fprintf(stderr, "Failed to initialize cpu, code = %04X", err);
         return EXIT_FAILURE;
     }
 
+    /* Initialize PPU */
+    nes_ppu_palette_t palette = NESEMU_PALETTE_STANDARD;
+    nes_ppu_t ppu;
+    if ((err = nes_ppu_init(&ppu, &palette, &mem)) != NESEMU_RETURN_SUCCESS) {
+        fprintf(stderr, "Failed to initialize cpu, code = %04X", err);
+        return EXIT_FAILURE;
+    }
+
+    /* Create the display framebuffer */
+    nes_display_t display;
 	return EXIT_SUCCESS;
 }
 

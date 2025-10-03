@@ -12,6 +12,7 @@
 #include "nesemu/memory/main.h"
 #include "nesemu/memory/video.h"
 
+#include "palette.h"
 #include "oam.h"
 
 #include <stdint.h>
@@ -32,26 +33,44 @@ typedef uint8_t nes_display_t[NESEMU_PPU_BUFFER_SIZE];
  * Picture Processing Unit (NTSC only!)
  */
 typedef struct nes_ppu {
-	uint16_t scanline; /**< Index for the current scanline */
-	uint16_t rasterline; /**< Index for the current horizontal pixel in scanline */
-	uint8_t odd; /** Either 1 or 0, 1 on every odd frame */
 
-    nes_ppu_oam_t oam; /** Primary OAM */
-    nes_ppu_oam_t s_oam; /** Secondary OAM */
+	uint16_t scanline; /**< Index for the current scanline */
+	uint16_t dot; /**< Index for the current dot in scanline */
+	uint8_t frame; /**< Either 1 or 0, 1 on every odd frame */
+
+    nes_ppu_palette_t *system_palette; /**< Reference to the system palette (RGB24) */
+
+    struct nes_ppu_oam oam[NESEMU_PPU_OAM_SPRITES]; /**< Primary OAM */
+    struct nes_ppu_oam s_oam[NESEMU_PPU_SOAM_SPRITES]; /**< Secondary OAM */
+
+    uint8_t v; /**< Internal register */
+    uint8_t t; /**< Internal register */
+    uint8_t x; /**< Internal register */
+    uint8_t w; /**< Internal register */
+
 } nes_ppu_t;
 
 /**
  * Initialize the PPU and its memory
+ *
+ * @param self PPU struct reference
+ * @param system_palette Reference to system palette look-up table
+ * @param mem Main system memory (for access to the PPU registers)
+ *
+ * @note A reference to the `system_palette` array will be stored inside
+ * the ppu structure, keep this array in memory and alive as much as the
+ * ppu structure.
  */
 nesemu_return_t nes_ppu_init(struct nes_ppu *self,
+			     nes_ppu_palette_t *system_palette,
 			     struct nes_mem_main *mem);
 
 /**
  * Render, exactly 1 pixel.
  * @note Rendered pixel might not be visible, as it also emulates HBLANK and VBLANK regions
  * 
- * @param display Reference to an array of RGB24 bytes
  * @param self PPU structure reference
+ * @param display Reference to an array of RGB24 bytes
  * @param mem System memory bus
  * @param vim Video memory bus
  * @param cycles Reference to an integer where the amount of PPU cycles the operation took

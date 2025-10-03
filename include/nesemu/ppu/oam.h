@@ -6,17 +6,17 @@
 /** Amount of sprites that fit into OAM */
 #define NESEMU_PPU_OAM_SPRITES 64
 
+/** Amount of sprites that fit into secondary OAM */
+#define NESEMU_PPU_SOAM_SPRITES 8
+
 /**
  * Structure of a single entry in the OAM
  */
-struct nes_ppu_sprite_data {
+struct nes_ppu_oam {
 	uint8_t y;
 	uint8_t tile;
 	uint8_t attr;
 	uint8_t x;
 } __attribute__((packed));
-
-/** Object Attrubute Memory (OAM) */
-typedef struct nes_ppu_sprite_data nes_ppu_oam_t[NESEMU_PPU_OAM_SPRITES];
 
 #endif

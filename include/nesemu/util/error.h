@@ -47,6 +47,9 @@ typedef enum nesemu_return {
      */
 	NESEMU_INFO_CARTRIDGE_DELEGATE_RWOP = 0x30,
 
+    /* --- PPU --- */
+    NESEMU_RETURN_PPU_BAD_PALETTE = -0x41,
+
 } nesemu_return_t;
 
 /**
