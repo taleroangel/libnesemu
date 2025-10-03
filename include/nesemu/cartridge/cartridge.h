@@ -61,10 +61,10 @@ union nes_ines_mapper_t {
 	struct nes_ines_nrom_cartridge_t nrom; /**< NROM (0) */
 
 	/**
-     * Just an empty field :)
+     * Just an empty field for type punning :)
      * Because this is a `union` type. Grabbing a reference to this value
      * (or any other value) will be the same as having a generic reference
-     * to any of the union's members;
+     * to any of the union's members (type punning)
      *
      * Do not use this field directly. Let the macros handle the dark arts.
      */
@@ -132,7 +132,8 @@ enum nes_ines_attr_flags_7 {
  *
  * Beware that CHRROM/CHRRAM should always return `
  */
-struct nes_cartridge_t {
+typedef struct nes_cartridge_t {
+
 	/** Variant discriminator */
 	enum nes_ines_mapper_variant type;
 
@@ -192,11 +193,12 @@ struct nes_cartridge_t {
      * @note Optional field, leave as NULL when no CHRRAM is available.
      */
 	nes_cartridge_write_t chr_write_fn;
-};
+
+} nes_cartridge_t;
 
 /**
  * Get a generic reference to the mapper internal structure.
- * Use this as first parameter of the mapper callbacks
+ * Use this as first parameter of the mapper callbacks (type punning)
  *
  * @param c (struct nes_cartridge_t *) cartridge reference
  */

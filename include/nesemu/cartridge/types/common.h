@@ -42,7 +42,7 @@
  * Every mapper type is supposed to have its own struct. Each struct is present
  * as a field in `union nes_ines_mapper_t at cartridge.h`. But because you
  * cannot include 'cartridge.h' inside this file (because that file already
- * includes this one), a reference to the mapper struct is given instead
+ * includes this one), a reference to the mapper struct is given instead.
  * 
  * i.e
  * nesemu_mapper_generic_ref_t generic = &(union nes_ines_mapper_t)mapper.nrom;
@@ -52,7 +52,8 @@
  *
  * Because all union members share the same memory, you can grab a reference
  * to any member, but for in order to keep mapper types decoupled an empty type
- * `__self` is included. Use macro `NESEMU_CARTRIDGE_GET_MAPPER_GENERIC_REF`.
+ * `__self` is included (sse macro `NESEMU_CARTRIDGE_GET_MAPPER_GENERIC_REF`),
+ * this technique is known as 'type punning`.
  *
  * Now, in order to use this type in each of the callbacks defined by the mapper
  * you should cast this reference to a pointer to the mapper type.
@@ -60,7 +61,7 @@
  * i.e
  * (struct nes_ines_nrom_cartridge_t *)generic
  *
- * Make sure to cast to the right type, no type safety here.
+ * Make sure to cast to the right type, playing with no type safety here.
  * You can create your functions with a reference to their struct instead of
  * the generic reference (void *) and cast them to the corresponding function
  * pointer type. Beware! this may cause undefined behaviour if the function
@@ -124,7 +125,7 @@ typedef nesemu_return_t (*nes_cartridge_write_t)(
  *
  * Unless `NESEMU_INFO_CARTRIDGE_DELEGATE_RWOP` is specified, result address
  * space should not exceed boundaries $2000-$27FF, incoming address space
- * is withing the range $0000-$2FFF.
+ * is within the range $0000-$2FFF.
  *
  * Addresses for CHRROM/CHRRAM ($0000-$1FFF) should always return
  * `NESEMU_INFO_CARTRIDGE_DELEGATE_RWOP`, not doing this will cause an

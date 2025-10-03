@@ -68,7 +68,7 @@
  *
  * Functions related to this memory type are named with `mem`
  */
-struct nes_main_memory_t {
+typedef struct nes_main_memory_t {
 	/**
      * Raw memory array. Should not be accessed directly.
      *
@@ -91,7 +91,8 @@ struct nes_main_memory_t {
      * Reference to the game cartridge. Should already be initialized.
      */
 	struct nes_cartridge_t *cartridge;
-};
+
+} nes_mem_t ;
 
 /**
  * Initialize memory to its initial state 

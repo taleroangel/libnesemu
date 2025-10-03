@@ -33,7 +33,7 @@
  *
  * @note This is a little-endian processor
  */
-struct nes_cpu_t {
+typedef struct nes_cpu_t {
 	/* Registers */
 	uint16_t pc; /**< Program Counter */
 	uint8_t sp; /**< Stack Pointer */
@@ -45,7 +45,8 @@ struct nes_cpu_t {
 	/* Support */
 	bool stop; /**< Stop execution flag (use STP instruction) */
 	uint8_t brk; /**< BRK Reason */
-};
+
+} nes_cpu_t;
 
 /**
  * Initialize CPU registers to their power-up state
@@ -54,13 +55,13 @@ struct nes_cpu_t {
  * @note Cartridge must be already loaded! Complete memory map is required
  */
 nesemu_return_t nes_cpu_init(struct nes_cpu_t *self,
-			    struct nes_main_memory_t *mem);
+			     struct nes_main_memory_t *mem);
 
 /**
  * Restart the CPU, like pressing the restart button
  */
 nesemu_return_t nes_cpu_reset(struct nes_cpu_t *self,
-			     struct nes_main_memory_t *mem);
+			      struct nes_main_memory_t *mem);
 
 /**
  * Process the next instruction (will only process 1 instruction and then return)
@@ -73,8 +74,8 @@ nesemu_return_t nes_cpu_reset(struct nes_cpu_t *self,
  * @note Will execute the instruction at $PC and then return
  */
 nesemu_return_t nes_cpu_next(struct nes_cpu_t *self,
-			    struct nes_main_memory_t *mem,
-			    int *cycles);
+			     struct nes_main_memory_t *mem,
+			     int *cycles);
 
 /**
  * Fetch the next word from memory at $pc and increment $pc

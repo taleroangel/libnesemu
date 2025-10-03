@@ -8,8 +8,59 @@
 #ifndef __NESEMU_PPU_H__
 #define __NESEMU_PPU_H__
 
-#define NESEMU_PPU_SCREEN_HEIGHT 200
-#define NESEMU_PPU_SCREEN_WIDTH 250
+#include "nesemu/util/error.h"
+#include "nesemu/memory/main.h"
+#include "nesemu/memory/video.h"
+
+#include "oam.h"
+
+#include <stdint.h>
+
+/** Visible screen height */
+#define NESEMU_PPU_SCREEN_HEIGHT 240
+
+/** Visible screen width */
+#define NESEMU_PPU_SCREEN_WIDTH 256
+
+/** Size (in bytes) of the framebuffer (RGB24) */
+#define NESEMU_PPU_BUFFER_SIZE (NESEMU_PPU_SCREEN_HEIGHT * NESEMU_PPU_SCREEN_WIDTH * 3)
+
+/** Type for the PPU image output (RGB24 buffer) */
+typedef uint8_t nes_display_t[NESEMU_PPU_BUFFER_SIZE];
+
+/**
+ * Picture Processing Unit (NTSC only!)
+ */
+typedef struct nes_ppu_t {
+	uint16_t scanline; /**< Index for the current scanline */
+	uint16_t rasterline; /**< Index for the current horizontal pixel in scanline */
+	uint8_t odd; /** Either 1 or 0, 1 on every odd frame */
+
+    nes_oam_t oam; /** Primary OAM */
+    nes_oam_t s_oam; /** Secondary OAM */
+} nes_ppu_t;
+
+/**
+ * Initialize the PPU and its memory
+ */
+nesemu_return_t nes_ppu_init(struct nes_ppu_t *self,
+			     struct nes_main_memory_t *mem);
+
+/**
+ * Render, exactly 1 pixel.
+ * @note Rendered pixel might not be visible, as it also emulates HBLANK and VBLANK regions
+ * 
+ * @param display Reference to an array of RGB24 bytes
+ * @param self PPU structure reference
+ * @param mem System memory bus
+ * @param vim Video memory bus
+ * @param cycles Reference to an integer where the amount of PPU cycles the operation took
+ */
+nesemu_return_t nes_ppu_render(struct nes_ppu_t *self,
+			       nes_display_t *display,
+			       struct nes_main_memory_t *mem,
+			       struct nes_video_memory_t *vim,
+			       int *cycles);
 
 /**
  * NES PPU registers

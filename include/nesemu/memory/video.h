@@ -49,10 +49,7 @@ struct nes_video_memory_t {
      *
      * In the original NES hardware, this address space is mapped by the
      * cartridge. Because this structure acts as a bus, the mappings will be
-     * handled by this structure's related methods instead based of
-     * `cartridge`'s informative flags `use_chram` and `external_vram`.
-     *
-     * If `cartridge.external_vram` is true this space will be unused
+     * handled by this structure's related methods instead.
      */
     uint8_t ciram[NESEMU_MEMORY_VRAM_CIRAM_SIZE];
 
@@ -71,6 +68,10 @@ struct nes_video_memory_t {
 
 	/**
      * Reference to the game cartridge. Should already be initialized
+     *
+     * Beware!, pattern table data ($0000-$1FFF) lives within cartridge's
+     * CHRROM/CHRRAM section, r/w operations to those addresses will be 
+     * delegated to the cartridge callbacks.
      */
 	struct nes_cartridge_t *cartridge;
 };
