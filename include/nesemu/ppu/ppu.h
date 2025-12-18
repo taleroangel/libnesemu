@@ -29,11 +29,11 @@
 /** Visible screen width */
 #define NESEMU_PPU_SCREEN_WIDTH 256
 
-/** Size (in bytes) of the framebuffer (RGB24) */
-#define NESEMU_PPU_BUFFER_SIZE (NESEMU_PPU_SCREEN_HEIGHT * NESEMU_PPU_SCREEN_WIDTH * 3)
+/** Size of the framebuffer (RGB24) */
+#define NESEMU_PPU_BUFFER_SIZE (NESEMU_PPU_SCREEN_HEIGHT * NESEMU_PPU_SCREEN_WIDTH)
 
 /** Type for the PPU image output (RGB24 buffer) */
-typedef uint8_t nes_display_t[NESEMU_PPU_BUFFER_SIZE];
+typedef nes_color_t nes_display_t[NESEMU_PPU_BUFFER_SIZE];
 
 /**
  * Picture Processing Unit (NTSC only!)

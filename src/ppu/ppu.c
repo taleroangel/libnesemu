@@ -115,7 +115,7 @@ nesemu_return_t nes_ppu_render(struct nes_ppu *self,
     uint16_t ataddr = ntaddr + NESEMU_PPU_ATTRTABLE_OFFSET;
 
     // Palette buffer (from attribute table)
-    nes_ppu_palette_item_t palette;
+    nes_vram_palette_t palette;
 
     // Pattern buffer
     uint8_t lo_bgpattern = 0;
@@ -171,6 +171,12 @@ nesemu_return_t nes_ppu_render(struct nes_ppu *self,
 
                 // Save palette (keep only 2 first bits)
                 int paletteidx = (int)(attrbuff & 0x03);
+                uint16_t paletteaddr = NESEMU_MEMORY_VRAM_PALETTE_ADDR + paletteidx;
+
+                // Read palette
+                if ((err = nes_vram_palette_read(vim, paletteaddr, &palette)) < NESEMU_RETURN_SUCCESS) {
+                    return err;
+                }
 
                 // Get pattern table base addr
                 uint16_t baddrbg = ((ppuctrl & NESEMU_PPU_PPUCTRL_BACKGROUND_PATTERN_TABLE) == 0)
@@ -194,11 +200,14 @@ nesemu_return_t nes_ppu_render(struct nes_ppu *self,
             int bit = (7 - x);
             uint8_t lo = (lo_bgpattern >> bit) & 1;
             uint8_t hi = (hi_bgpattern >> bit) & 1;
-            int bgcolor = (hi << 1) | lo;
+            int bgidx = (hi << 1) | lo;
 
-            // Get background palette
-            uint16_t paddr = (NESEMU_MEMORY_VRAM_PALETTE_ADDR + paletteidx);
+            // Get background color from palette
+            int bgsysindex = palette[bgidx];
+            nes_color_t bgcolor = (*self->system_palette)[bgsysindex];
 
+            // Set color in display
+            *display[(self->scanline * NESEMU_PPU_SCREEN_WIDTH) + x] = bgcolor;
         }
     }
     /* Idle section */

@@ -7,6 +7,11 @@
 #define NESEMU_PPU_PALETTE_SIZE 0x40
 
 /**
+ * Type for a RGB24 (XRGB*888)color. i.e 0x00FFFFFF (white)
+ */
+typedef uint32_t nes_color_t;
+
+/**
  * Type for the system color palette to be used (RGB24 values)
  *
  * This structure can be filled using macros, i.e
@@ -14,7 +19,7 @@
  *
  * PPU will require to pass a pointer to the palette to be used
  */
-typedef uint32_t nes_ppu_system_palette_t[NESEMU_PPU_PALETTE_SIZE];
+typedef nes_color_t nes_ppu_system_palette_t[NESEMU_PPU_PALETTE_SIZE];
 
 /** Standard NES palette, fill values for the array */
 #define NESEMU_PALETTE_STANDARD                                                \

@@ -5,11 +5,12 @@
 
 #include "nesemu/util/error.h"
 
+#include <stdbool.h>
 #include <stdint.h>
 #include <string.h>
 
 /** Size of the PRGRAM in cartridge */
-#define NESEMU_CARTRIDGE_NROM_PRGROM_SIZE (NESEMU_CARTRIDGE_PRGROM_BANK_SIZE)
+#define NESEMU_CARTRIDGE_NROM_PRGROM_SIZE (2 * NESEMU_CARTRIDGE_PRGROM_BANK_SIZE)
 
 /** Size of the CHRROM in cartridge */
 #define NESEMU_CARTRIDGE_NROM_CHRROM_SIZE (NESEMU_CARTRIDGE_CHRROM_BANK_SIZE)
@@ -22,6 +23,11 @@ struct nes_ines_nrom_cartridge {
      * Single memory bank for PRGROM in the cartridge.
      */
 	uint8_t prgrom[NESEMU_CARTRIDGE_NROM_PRGROM_SIZE];
+
+    /**
+     * Tell if PRGROM has only 1 mirrored bank
+     */
+    bool mirrored_bank;
 
 	/**
      * Single memory bank for CHRROM in the cartridge.

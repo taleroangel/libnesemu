@@ -107,9 +107,8 @@ nesemu_return_t nes_vram_w8(struct nes_mem_video *self,
 	// Other addresses are mapped by the cartridge
 	nesemu_return_t status = NESEMU_RETURN_SUCCESS;
 
-	uint16_t map; // Target address
-	/* Call cartridge address mapping, store code in `status` */
-	if ((status = _cartridge_mapping(self, addr, &map)) <
+    // Address mapping by cartridge into same variable
+	if ((status = _cartridge_mapping(self, addr, &addr)) <
 	    NESEMU_RETURN_SUCCESS) {
 		// Handle error
 		return status;
@@ -164,9 +163,8 @@ nesemu_return_t nes_vram_r8(struct nes_mem_video *self,
 	// Other addresses are mapped by the cartridge
 	nesemu_return_t status = NESEMU_RETURN_SUCCESS;
 
-	uint16_t map; // Target address
-	/* Call cartridge address mapping, store code in `status` */
-	if ((status = _cartridge_mapping(self, addr, &map)) <
+    // Address mapping by cartridge into the same var
+	if ((status = _cartridge_mapping(self, addr, &addr)) <
 	    NESEMU_RETURN_SUCCESS) {
 		// Handle error
 		return status;
@@ -259,9 +257,8 @@ nesemu_return_t nes_vram_pattern_read(struct nes_mem_video *self,
 	// Get address map by the cartridge
 	nesemu_return_t status = NESEMU_RETURN_SUCCESS;
 
-	uint16_t map; // Target address
-	/* Call cartridge address mapping, store code in `status` */
-	if ((status = _cartridge_mapping(self, addr, &map)) <
+    // Address mapping by cartridge into the same address
+	if ((status = _cartridge_mapping(self, addr, &addr)) <
 	    NESEMU_RETURN_SUCCESS) {
 		// Handle error
 		return status;
@@ -299,5 +296,24 @@ nesemu_return_t nes_vram_palette_read(struct nes_mem_video *self,
 				      uint16_t addr,
 				      nes_vram_palette_t *palette)
 {
+
+#ifndef CONFIG_NESEMU_DISABLE_SAFETY_CHECKS
+    __CHECK_ADDRESSING(addr);
+    if (addr < NESEMU_MEMORY_VRAM_PALETTE_ADDR) {
+        return NESEMU_RETURN_MEMORY_INVALILD_ADDR;
+    }
+#endif
+    // Compute offset from start of the array
+    addr %= NESEMU_MEMORY_VRAM_PALETTE_ADDR;
+    // Compute address mirroring
+    addr %= NESEMU_MEMORY_VRAM_PALETTE_RAM_SIZE;
+
+    // Copy contents to target variable
+    for (size_t idx = 0; idx < NESEMU_MEMORY_VRAM_PALETTE_SIZE; idx++) {
+        *palette[idx] = self->palette_ram[addr + idx];
+    }
+
+    // Return with no errors
+    return NESEMU_RETURN_SUCCESS;
 
 }
