@@ -31,8 +31,4 @@
  */
 #define _NESEMU_UNUSED(x) (void)x
 
-#include <assert.h>
-
-#define _NESEMU_MAKE_FN_PTR(func, T) ;;
-
 #endif

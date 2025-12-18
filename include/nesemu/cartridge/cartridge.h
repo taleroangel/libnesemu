@@ -130,7 +130,8 @@ enum nes_ines_attr_flags_7 {
  * includes some `callback` function pointers, this callbacks will be called
  * by the `memory` subsystem to read this addresses.
  *
- * Beware that CHRROM/CHRRAM should always return `
+ * Beware that r/w to CHRROM/CHRRAM address space should always return
+ * `NESEMU_INFO_CARTRIDGE_DELEGATE_RWOP`
  */
 typedef struct nes_cartridge {
 

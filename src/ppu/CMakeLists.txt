@@ -1,2 +1,3 @@
-target_sources(ppu PUBLIC
+target_sources(nesemu PUBLIC
+    ppu.c
 )

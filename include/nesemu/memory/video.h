@@ -3,6 +3,7 @@
 
 #include "nesemu/cartridge/cartridge.h"
 
+#include "nesemu/util/error.h"
 #include <stdint.h>
 
 /*
@@ -13,7 +14,12 @@
 /**
  * Size for the Palette RAM indexes
  */
-#define NESEMU_MEMORY_VRAM_PALETTE_SIZE 0x20
+#define NESEMU_MEMORY_VRAM_PALETTE_RAM_SIZE 0x20
+
+/**
+ * Size for a single palette
+ */
+#define NESEMU_MEMORY_VRAM_PALETTE_SIZE 4
 
 /**
  * Size of the total addressable space.
@@ -31,6 +37,11 @@
 #define NESEMU_MEMORY_VRAM_CIRAM_ADDR 0x2000
 
 /**
+ * Pattern size in bytes
+ */
+#define NESEMU_MEMORY_VRAM_PATTERN_SIZE 16
+
+/**
  * 16-bit addressable video memory (VRAM).
  * Functions related to this memory type are named with `chr`.
  *
@@ -42,8 +53,7 @@
  * here!.
  */
 typedef struct nes_mem_video {
-
-    /**
+	/**
      * Console internal CIRAM (Nametables and Attribute Tables).
      * Address space between $2000-$2FFF.
      *
@@ -51,7 +61,7 @@ typedef struct nes_mem_video {
      * cartridge. Because this structure acts as a bus, the mappings will be
      * handled by this structure's related methods instead.
      */
-    uint8_t ciram[NESEMU_MEMORY_VRAM_CIRAM_SIZE];
+	uint8_t ciram[NESEMU_MEMORY_VRAM_CIRAM_SIZE];
 
 	/**
      * Palette RAM indexes. Should not be accessed directly
@@ -64,7 +74,7 @@ typedef struct nes_mem_video {
      * Memory addresses below $3F00 should delegate r/w operations to the
      * cartridge `chr callbacks`.
      */
-	uint8_t palette_ram[NESEMU_MEMORY_VRAM_PALETTE_SIZE];
+	uint8_t palette_ram[NESEMU_MEMORY_VRAM_PALETTE_RAM_SIZE];
 
 	/**
      * Reference to the game cartridge. Should already be initialized
@@ -75,56 +85,88 @@ typedef struct nes_mem_video {
      */
 	struct nes_cartridge *cartridge;
 
-} nes_mem_video_t ;
+} nes_mem_video_t;
+
+/**
+ * Pattern raw data from pattern table
+ */
+typedef uint8_t nes_vram_pattern_t[NESEMU_MEMORY_VRAM_PATTERN_SIZE];
+
+/**
+ * A single palette in palette ram
+ */
+typedef uint8_t nes_vram_palette_t[NESEMU_MEMORY_VRAM_PALETTE_SIZE];
 
 /**
  * Initialize memory to its initial state 
  */
-nesemu_return_t nes_chr_init(struct nes_mem_video *self,
-			    struct nes_cartridge *cartridge);
+nesemu_return_t nes_vram_init(struct nes_mem_video *self,
+			      struct nes_cartridge *cartridge);
 
 /**
  * Write 8 bits in memory at `addr`
  *
- * @param mem Memory array
+ * @param self Memory array
  * @param addr Memory address
  * @param data Data to be pushed onto memory
  */
-nesemu_return_t nes_chr_w8(struct nes_mem_video *self,
-			  uint16_t addr,
-			  uint8_t data);
+nesemu_return_t nes_vram_w8(struct nes_mem_video *self,
+			    uint16_t addr,
+			    uint8_t data);
 
 /**
  * Read 8 bits from memory at `addr`
  *
- * @param mem Memory array
+ * @param self Memory array
  * @param addr Memory address
  * @param result Reference to where the result will be stored
  */
-nesemu_return_t nes_chr_r8(struct nes_mem_video *self,
-			  uint16_t addr,
-			  uint8_t *result);
+nesemu_return_t nes_vram_r8(struct nes_mem_video *self,
+			    uint16_t addr,
+			    uint8_t *result);
 
 /**
  * Write 16 bits in memory at `addr`
  *
- * @param mem Memory array
+ * @param self Memory array
  * @param addr Memory address (should not be last memory position)
  * @param data Data to be pushed onto memory
  */
-nesemu_return_t nes_chr_w16(struct nes_mem_video *self,
-			   uint16_t addr,
-			   uint16_t data);
+nesemu_return_t nes_vram_w16(struct nes_mem_video *self,
+			     uint16_t addr,
+			     uint16_t data);
 
 /**
  * Read 16 bits from memory at `addr`
  *
- * @param mem Memory array
+ * @param self Memory array
  * @param addr Memory address (should not be last memory position)
  * @param result Reference to where the result will be stored
  */
-nesemu_return_t nes_chr_r16(struct nes_mem_video *memself,
-			   uint16_t addr,
-			   uint16_t *result);
+nesemu_return_t nes_vram_r16(struct nes_mem_video *self,
+			     uint16_t addr,
+			     uint16_t *result);
+
+/**
+ * Read raw pattern from a pattern table
+ *
+ * @param self Memory array
+ * @param addr Memory address (should be in range for pattern tables)
+ * @param result Reference to the pattern table array (should be allocated)
+ */
+nesemu_return_t nes_vram_pattern_read(struct nes_mem_video *self,
+				      uint16_t addr,
+				      nes_vram_pattern_t *pattern);
+
+/**
+ * Get a palette from palette RAM
+ *
+ * @param self Memory array
+ * @param addr Memory address (should be in range for palette ram)
+ * @param result Reference to the palette array (should be allocated)
+ */
+nesemu_return_t nes_vram_palette_read(struct nes_mem_video *self,
+				      uint16_t addr,
+				      nes_vram_palette_t *palette);
 
 #endif

@@ -52,7 +52,7 @@
  *
  * Because all union members share the same memory, you can grab a reference
  * to any member, but for in order to keep mapper types decoupled an empty type
- * `__self` is included (sse macro `NESEMU_CARTRIDGE_GET_MAPPER_GENERIC_REF`),
+ * `__self` is included (see macro `NESEMU_CARTRIDGE_GET_MAPPER_GENERIC_REF`),
  * this technique is known as 'type punning`.
  *
  * Now, in order to use this type in each of the callbacks defined by the mapper

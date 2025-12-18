@@ -17,6 +17,12 @@
 
 #include <stdint.h>
 
+/** Nametable height */
+#define NESEMU_PPU_NAMETABLE_HEIGHT 30
+
+/** Nametable width */
+#define NESEMU_PPU_NAMETABLE_WIDTH 32
+
 /** Visible screen height */
 #define NESEMU_PPU_SCREEN_HEIGHT 240
 
@@ -35,18 +41,33 @@ typedef uint8_t nes_display_t[NESEMU_PPU_BUFFER_SIZE];
 typedef struct nes_ppu {
 
 	uint16_t scanline; /**< Index for the current scanline */
-	uint16_t dot; /**< Index for the current dot in scanline */
-	uint8_t frame; /**< Either 1 or 0, 1 on every odd frame */
 
-    nes_ppu_palette_t *system_palette; /**< Reference to the system palette (RGB24) */
+    nes_ppu_system_palette_t *system_palette; /**< Reference to the system palette (RGB24) */
 
     struct nes_ppu_oam oam[NESEMU_PPU_OAM_SPRITES]; /**< Primary OAM */
     struct nes_ppu_oam s_oam[NESEMU_PPU_SOAM_SPRITES]; /**< Secondary OAM */
 
-    uint8_t v; /**< Internal register */
-    uint8_t t; /**< Internal register */
-    uint8_t x; /**< Internal register */
-    uint8_t w; /**< Internal register */
+    /**
+     * Internal (V) Register (15 bits)
+     * Current VRAM address, note that while the register is 15 bits long, the
+     * PPU memory space is only 14 bits wide. The MSB is unused.
+     *
+     * 15 bits registers `t` and `v` are composed this way during rendering
+     *
+     *  yyy NN YYYYY XXXXX
+     * 
+     * y: fine Y scroll
+     * N: nametable select
+     * Y: coarse Y scroll
+     * X: coarse X scroll
+     *
+     * More at:
+     * https://www.nesdev.org/wiki/PPU_scrolling#PPU_internal_registers
+     */
+    uint16_t v: 15;
+    uint16_t t: 15; /**< Internal register: Temporary VRAM address */
+    uint8_t x: 3; /**< Internal register: Fine X Scroll */
+    uint8_t w: 1; /**< Internal register: First or second write toggle */
 
 } nes_ppu_t;
 
@@ -62,7 +83,7 @@ typedef struct nes_ppu {
  * ppu structure.
  */
 nesemu_return_t nes_ppu_init(struct nes_ppu *self,
-			     nes_ppu_palette_t *system_palette,
+			     nes_ppu_system_palette_t *system_palette,
 			     struct nes_mem_main *mem);
 
 /**
@@ -97,6 +118,15 @@ enum nes_ppu_registers_t {
 	NESEMU_PPU_REG_PPUADDR = 0x2006,
 	NESEMU_PPU_REG_PPUDATA = 0x2007,
 	NESEMU_PPU_REG_OAMDMA = 0x4014,
+};
+
+/**
+ * PPUCTRL bit masks
+ */
+enum nes_ppu_ppuctrl_t {
+    NESEMU_PPU_PPUCTRL_BASE_NAMETABLE = 0x03,
+    NESEMU_PPU_PPUCTRL_FOREGROUND_PATTERN_TABLE = 0x08,
+    NESEMU_PPU_PPUCTRL_BACKGROUND_PATTERN_TABLE = 0x10,
 };
 
 #endif

@@ -1,6 +1,7 @@
 #include "nesemu/memory/video.h"
 
 #include "nesemu/cartridge/cartridge.h"
+#include "nesemu/cartridge/types/common.h"
 #include "nesemu/util/error.h"
 #include "nesemu/util/bits.h"
 
@@ -55,6 +56,9 @@ static inline nesemu_return_t _cartridge_write(struct nes_mem_video *self,
 		value);
 }
 
+/**
+ * Syntax sugar around cartridge mapper
+ */
 static inline nesemu_return_t _cartridge_mapping(struct nes_mem_video *self,
 						 uint16_t addr,
 						 uint16_t *mapped)
@@ -71,8 +75,8 @@ static inline nesemu_return_t _cartridge_mapping(struct nes_mem_video *self,
 
 /* -- Public Functions -- */
 
-nesemu_return_t nes_chr_init(struct nes_mem_video *self,
-			     struct nes_cartridge *cartridge)
+nesemu_return_t nes_vram_init(struct nes_mem_video *self,
+			      struct nes_cartridge *cartridge)
 {
 	(void)memset(self, 0, sizeof(struct nes_mem_video));
 	self->cartridge = cartridge;
@@ -80,9 +84,9 @@ nesemu_return_t nes_chr_init(struct nes_mem_video *self,
 	return NESEMU_RETURN_SUCCESS;
 }
 
-nesemu_return_t nes_chr_w8(struct nes_mem_video *self,
-			   uint16_t addr,
-			   uint8_t data)
+nesemu_return_t nes_vram_w8(struct nes_mem_video *self,
+			    uint16_t addr,
+			    uint8_t data)
 {
 	__CHECK_ADDRESSING(addr);
 
@@ -91,7 +95,7 @@ nesemu_return_t nes_chr_w8(struct nes_mem_video *self,
 		// Compute offset from start of the array
 		addr %= NESEMU_MEMORY_VRAM_PALETTE_ADDR;
 		// Compute address mirroring
-		addr %= NESEMU_MEMORY_VRAM_PALETTE_SIZE;
+		addr %= NESEMU_MEMORY_VRAM_PALETTE_RAM_SIZE;
 
 		// Set the value at the Palette RAM indexes
 		self->palette_ram[addr] = data;
@@ -137,9 +141,9 @@ nesemu_return_t nes_chr_w8(struct nes_mem_video *self,
 	return status;
 }
 
-nesemu_return_t nes_chr_r8(struct nes_mem_video *self,
-			   uint16_t addr,
-			   uint8_t *result)
+nesemu_return_t nes_vram_r8(struct nes_mem_video *self,
+			    uint16_t addr,
+			    uint8_t *result)
 {
 	__CHECK_ADDRESSING(addr);
 
@@ -148,7 +152,7 @@ nesemu_return_t nes_chr_r8(struct nes_mem_video *self,
 		// Compute offset from start of the array
 		addr %= NESEMU_MEMORY_VRAM_PALETTE_ADDR;
 		// Compute address mirroring
-		addr %= NESEMU_MEMORY_VRAM_PALETTE_SIZE;
+		addr %= NESEMU_MEMORY_VRAM_PALETTE_RAM_SIZE;
 
 		// Get the value at the Palette RAM indexes
 		*result = self->palette_ram[addr];
@@ -191,9 +195,9 @@ nesemu_return_t nes_chr_r8(struct nes_mem_video *self,
 	return status;
 }
 
-nesemu_return_t nes_chr_w16(struct nes_mem_video *self,
-			    uint16_t addr,
-			    uint16_t data)
+nesemu_return_t nes_vram_w16(struct nes_mem_video *self,
+			     uint16_t addr,
+			     uint16_t data)
 {
 	__CHECK_ADDRESSING(addr);
 
@@ -202,21 +206,21 @@ nesemu_return_t nes_chr_w16(struct nes_mem_video *self,
 
 	// Write LSB
 	nesemu_return_t err;
-	if ((err = nes_chr_w8(self, addr, lsb)) != NESEMU_RETURN_SUCCESS) {
+	if ((err = nes_vram_w8(self, addr, lsb)) != NESEMU_RETURN_SUCCESS) {
 		return err;
 	}
 
 	// Write next (MSB)
-	if ((err = nes_chr_w8(self, addr + 1, msb)) != NESEMU_RETURN_SUCCESS) {
+	if ((err = nes_vram_w8(self, addr + 1, msb)) != NESEMU_RETURN_SUCCESS) {
 		return err;
 	}
 
 	return NESEMU_RETURN_SUCCESS;
 }
 
-nesemu_return_t nes_chr_r16(struct nes_mem_video *self,
-			    uint16_t addr,
-			    uint16_t *result)
+nesemu_return_t nes_vram_r16(struct nes_mem_video *self,
+			     uint16_t addr,
+			     uint16_t *result)
 {
 	__CHECK_ADDRESSING(addr);
 
@@ -225,12 +229,13 @@ nesemu_return_t nes_chr_r16(struct nes_mem_video *self,
 
 	// Get LSB
 	nesemu_return_t err;
-	if ((err = nes_chr_r8(self, addr, &lsb)) != NESEMU_RETURN_SUCCESS) {
+	if ((err = nes_vram_r8(self, addr, &lsb)) != NESEMU_RETURN_SUCCESS) {
 		return err;
 	}
 
 	// Get next (MSB)
-	if ((err = nes_chr_r8(self, addr + 1, &msb)) != NESEMU_RETURN_SUCCESS) {
+	if ((err = nes_vram_r8(self, addr + 1, &msb)) !=
+	    NESEMU_RETURN_SUCCESS) {
 		return err;
 	}
 
@@ -238,4 +243,61 @@ nesemu_return_t nes_chr_r16(struct nes_mem_video *self,
 	*result = NESEMU_UTIL_U16(msb, lsb);
 
 	return NESEMU_RETURN_SUCCESS;
+}
+
+nesemu_return_t nes_vram_pattern_read(struct nes_mem_video *self,
+				      uint16_t addr,
+				      nes_vram_pattern_t *pattern)
+{
+#ifndef CONFIG_NESEMU_DISABLE_SAFETY_CHECKS
+	// Check if address if greater than pattern table addressable space
+	if (addr >= NESEMU_CARTRIDGE_PATTERN_TABLE_ADDR) {
+		return NESEMU_RETURN_MEMORY_INVALILD_ADDR;
+	}
+#endif
+
+	// Get address map by the cartridge
+	nesemu_return_t status = NESEMU_RETURN_SUCCESS;
+
+	uint16_t map; // Target address
+	/* Call cartridge address mapping, store code in `status` */
+	if ((status = _cartridge_mapping(self, addr, &map)) <
+	    NESEMU_RETURN_SUCCESS) {
+		// Handle error
+		return status;
+	}
+
+	/* Delegate operation to the cartridge */
+	else if (status == NESEMU_INFO_CARTRIDGE_DELEGATE_RWOP) {
+		// Check if cartridge has read function
+#ifndef CONFIG_NESEMU_DISABLE_SAFETY_CHECKS
+		if (self->cartridge->chr_read_fn == NULL) {
+			return NESEMU_RETURN_CARTRIDGE_NO_CALLBACK;
+		}
+#endif
+        // For each byte, delegate operation to cartridge
+        for (size_t idx = 0; idx < NESEMU_MEMORY_VRAM_PATTERN_SIZE; idx++) {
+            if ((status = self->cartridge->chr_read_fn(
+                            NESEMU_CARTRIDGE_GET_MAPPER_GENERIC_REF(
+                                self->cartridge),
+                            addr + idx, pattern[idx])) <
+                    NESEMU_RETURN_SUCCESS) {
+                return status;
+            }
+        }
+	}
+
+	/* Pattern tables only live in cartridge */
+	else if (status == NESEMU_RETURN_SUCCESS) {
+        return NESEMU_RETURN_MEMORY_VRAM_BAD_MAPPER;
+	}
+
+	return status;
+}
+
+nesemu_return_t nes_vram_palette_read(struct nes_mem_video *self,
+				      uint16_t addr,
+				      nes_vram_palette_t *palette)
+{
+
 }

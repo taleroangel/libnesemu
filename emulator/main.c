@@ -62,7 +62,7 @@ int main(int argc, char *argv[])
     }
 
     nes_mem_video_t vim;
-    if ((err = nes_chr_init(&vim, &cartridge)) != NESEMU_RETURN_SUCCESS) {
+    if ((err = nes_vram_init(&vim, &cartridge)) != NESEMU_RETURN_SUCCESS) {
         fprintf(stderr, "Failed to initialize video memory, code = %04X", err);
         return EXIT_FAILURE;
     }
@@ -75,7 +75,7 @@ int main(int argc, char *argv[])
     }
 
     /* Initialize PPU */
-    nes_ppu_palette_t palette = NESEMU_PALETTE_STANDARD;
+    nes_ppu_system_palette_t palette = NESEMU_PALETTE_STANDARD;
     nes_ppu_t ppu;
     if ((err = nes_ppu_init(&ppu, &palette, &mem)) != NESEMU_RETURN_SUCCESS) {
         fprintf(stderr, "Failed to initialize cpu, code = %04X", err);
