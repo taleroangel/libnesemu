@@ -2,16 +2,6 @@
 #include "nesemu/cartridge/types/common.h"
 #include <string.h>
 
-/**
- * Helper macro to get a PRGROM address with mirroring
- *
- * $C000-$FFFF,$8000-$BFFF -> $0000-4000 with mirroring
- * $8000-$FFFF -> $0000-8000 without mirroring
- */
-#define __NESEMU_CARTRIDGE_NROM_GET_ADDR(self, addr)                       \
-	self->mirrored_bank ? (addr % NESEMU_CARTRIDGE_PRGROM_BANK_SIZE) : \
-			      (addr % NESEMU_CARTRIDGE_NROM_PRGROM_SIZE)
-
 nesemu_return_t nes_ines_nrom_prg_loader(struct nes_ines_nrom_cartridge *self,
 					 uint8_t *cdata,
 					 size_t len)
@@ -42,7 +32,12 @@ nesemu_return_t nes_ines_nrom_prg_reader(struct nes_ines_nrom_cartridge *self,
 #endif
 
 	// Read contents
-	*content = self->prgrom[__NESEMU_CARTRIDGE_NROM_GET_ADDR(self, addr)];
+	*content =
+        // Address should be mirrored if (mirrored_bank) is true
+        // Also, remove the offset since internal address starts at $0000
+		self->prgrom[self->mirrored_bank ?
+				     (addr % NESEMU_CARTRIDGE_PRGROM_BANK_SIZE) :
+				     (addr % NESEMU_CARTRIDGE_NROM_PRGROM_SIZE)];
 	return NESEMU_RETURN_SUCCESS;
 }
 

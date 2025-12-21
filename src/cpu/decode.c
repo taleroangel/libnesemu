@@ -1170,7 +1170,8 @@ static nesemu_return_t _JSR(struct nes_cpu *self,
 	jaddr = NESEMU_UTIL_U16(msb, lsb);
 
 	// Push $pc to stack
-	err = nes_stack_push_u16(mem, &self->sp, self->pc);
+    // Beware! JSR pushed ($pc - 1) to stack, not $pc
+	err = nes_stack_push_u16(mem, &self->sp, self->pc - 1);
 
 	// Set $pc
 	self->pc = jaddr;
@@ -1263,6 +1264,11 @@ nesemu_return_t nes_cpu_next(struct nes_cpu *self,
 
 	// Get instruction opcode
 	uint8_t opc = nes_cpu_fetch(self, mem);
+
+#ifdef CONFIG_NESEMU_DEBUG
+    self->last_inst = opc;
+    self->last_pc = self->pc - 1;
+#endif
 
 	// Set cycles using the instruction
 	*c = nes_cpu_op_cycles[opc];
@@ -1697,8 +1703,8 @@ nesemu_return_t nes_cpu_next(struct nes_cpu *self,
 		err = _JMP(self, mem, NESEMU_ADDRESSING_ABSOLUTE);
 		break;
 
-	case JMP_IX:
-		err = _JMP(self, mem, NESEMU_ADDRESSING_INDIRECT_X);
+	case JMP_IN:
+		err = _JMP(self, mem, NESEMU_ADDRESSING_INDIRECT);
 		break;
 
 	// JSR
@@ -1778,7 +1784,7 @@ nesemu_return_t nes_cpu_next(struct nes_cpu *self,
 		err = _CXX_SXX(self, opc);
 		break;
 
-		/* No opeeration */
+		/* No operation */
 	case NOP:
 		break;
 
@@ -1791,6 +1797,13 @@ nesemu_return_t nes_cpu_next(struct nes_cpu *self,
 	default:
 		return NESEMU_RETURN_CPU_UNSUPPORTED_INSTRUCTION;
 	}
+
+#ifndef CONFIG_NESEMU_DISABLE_SAFETY_CHECKS
+    if (err != NESEMU_RETURN_SUCCESS) {
+        self->brk = opc;
+        self->stop = true;
+    }
+#endif
 
 	return err;
 }

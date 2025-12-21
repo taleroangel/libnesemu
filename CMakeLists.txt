@@ -17,6 +17,11 @@ if(NESEMU_DISABLE_SAFETY_CHECKS)
   add_definitions(-DCONFIG_NESEMU_DISABLE_SAFETY_CHECKS)
 endif()
 
+# Project properties
+if(NESEMU_DEBUG)
+    add_definitions(-DCONFIG_NESEMU_DEBUG)
+endif()
+
 # Build library
 add_library(nesemu STATIC)
 

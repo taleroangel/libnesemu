@@ -1,9 +1,5 @@
 /* -- Standard Libraries -- */
-#include "nesemu/ppu/ppu.h"
-#include "nesemu/util/error.h"
-#include <SDL3/SDL_error.h>
-#include <SDL3/SDL_events.h>
-#include <SDL3/SDL_pixels.h>
+
 #include <stddef.h>
 #include <stdint.h>
 #include <stdlib.h>
@@ -16,6 +12,9 @@
 #include <SDL3/SDL_init.h>
 #include <SDL3/SDL_render.h>
 #include <SDL3/SDL_video.h>
+#include <SDL3/SDL_error.h>
+#include <SDL3/SDL_events.h>
+#include <SDL3/SDL_pixels.h>
 
 /**
  * Read cartridge raw data bytes from file

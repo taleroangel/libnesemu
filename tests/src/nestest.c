@@ -5,6 +5,9 @@
  * https://www.qmtpro.com/~nes/misc/nestest.txt
  */
 
+/* Enable DEBUG mode for nesemu */
+#define CONFIG_NESEMU_DEBUG 1
+
 #include "nesemu/util/error.h"
 #include "nesemu/memory/main.h"
 #include "nesemu/cpu/cpu.h"
@@ -55,10 +58,10 @@ int main(void)
 	// Placeholder for the error
 	nesemu_return_t err = NESEMU_RETURN_SUCCESS;
 
-    /* -- Load cartridge -- */
+	/* -- Load cartridge -- */
 
-    // Create cartridge
-    struct nes_cartridge cartridge;
+	// Create cartridge
+	struct nes_cartridge cartridge;
 
 	// Load cdata
 	size_t clen = 0;
@@ -100,7 +103,7 @@ int main(void)
 		return EXIT_FAILURE;
 	}
 
-	printf("Successful NESEMU memory initialization\n");	
+	printf("Successful NESEMU memory initialization\n");
 
 	/* -- CPU Initialization -- */
 	struct nes_cpu cpu;
@@ -151,8 +154,8 @@ int run(struct nes_mem_main *mem, struct nes_cpu *cpu)
 
 	// Return error
 	if (err != NESEMU_RETURN_SUCCESS) {
-		printf("nesemu CPU execution failed with error code (0x%x)\n",
-		       err);
+		printf("nesemu CPU execution failed with error code (0x%x)\n", err);
+		printf("CPU Backtrace ($pc=0x%04x [Instruction=0x%02x])\n", cpu->last_pc, cpu->last_inst);
 		return EXIT_FAILURE;
 	}
 
@@ -170,8 +173,8 @@ int run(struct nes_mem_main *mem, struct nes_cpu *cpu)
 
 	// nestest Error
 	if (cpu->brk != 0x00 || err0 != 0 || err1 != 0) {
-		printf("nestest failure ($brk=0x%04x, $02=%02x, $03=%02x)\n",
-		       cpu->brk, err0, err1);
+		printf("nestest failure ($PC=0x%04x [Instruction=0x%02x], $brk=0x%04x, $02=%02x, $03=%02x)\n",
+		       cpu->last_pc, cpu->last_inst, cpu->brk, err0, err1);
 		return EXIT_FAILURE;
 	}
 

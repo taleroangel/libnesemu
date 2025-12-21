@@ -81,11 +81,6 @@ nesemu_return_t nes_ppu_init(struct nes_ppu *self,
 	// Start with the pre-render scanline (scanline -1)
 	self->scanline = NESEMU_PPU_NTSC_PRERENDER_SCANLINE;
 
-    // Set PPUSTATUS initial status
-    // Other flags are 0 so no additional initialization required
-    err = nes_mem_w8(mem, NESEMU_PPU_REG_PPUSTATUS, 0xA0);
-    _NESEMU_RETURN_IF_ERR(err);
-
 	return err;
 }
 

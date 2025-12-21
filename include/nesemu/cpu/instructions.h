@@ -218,7 +218,7 @@ enum nes_cpu_instruction_set {
 
 	/* Jumps & Calls */
 	JMP_AB = 0x4C,
-	JMP_IX = 0x6C,
+	JMP_IN = 0x6C,
 
 	JSR = 0x20,
 	RTS = 0x60,

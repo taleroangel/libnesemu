@@ -48,7 +48,7 @@ enum nes_cpu_status {
  * Returns the result of removing flags from the mask from status
  */
 #define NESEMU_CPU_STATUS_UNSET_MASK(status, mask) \
-    (uint8_t)status | ~(uint8_t)mask
+    (uint8_t)status & (~(uint8_t)mask)
 
 /**
  * Check if a flag is set

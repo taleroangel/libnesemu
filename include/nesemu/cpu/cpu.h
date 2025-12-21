@@ -44,7 +44,13 @@ typedef struct nes_cpu {
 
 	/* Support */
 	bool stop; /**< Stop execution flag (use STP instruction) */
-	uint8_t brk; /**< BRK Reason */
+	uint8_t brk; /**< BRK Reason (0xFF on internal error) */
+
+    /* Debug */
+#ifdef CONFIG_NESEMU_DEBUG
+    uint8_t last_inst; /**< Last instruction on error */
+    uint16_t last_pc; /**< Last instruction exact $PC */
+#endif
 
 } nes_cpu_t;
 
