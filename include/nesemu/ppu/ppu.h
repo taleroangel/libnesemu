@@ -17,12 +17,6 @@
 
 #include <stdint.h>
 
-/** Nametable height */
-#define NESEMU_PPU_NAMETABLE_HEIGHT 30
-
-/** Nametable width */
-#define NESEMU_PPU_NAMETABLE_WIDTH 32
-
 /** Visible screen height */
 #define NESEMU_PPU_SCREEN_HEIGHT 240
 
@@ -87,8 +81,8 @@ nesemu_return_t nes_ppu_init(struct nes_ppu *self,
 			     struct nes_mem_main *mem);
 
 /**
- * Render, exactly 1 pixel.
- * @note Rendered pixel might not be visible, as it also emulates HBLANK and VBLANK regions
+ * Render, exactly 1 scanline.
+ * @note Rendered scanline might not be visible, as it also emulates HBLANK and VBLANK regions
  * 
  * @param self PPU structure reference
  * @param display Reference to an array of RGB24 bytes

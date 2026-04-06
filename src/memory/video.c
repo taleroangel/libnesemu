@@ -108,8 +108,7 @@ nesemu_return_t nes_vram_w8(struct nes_mem_video *self,
 	nesemu_return_t status = NESEMU_RETURN_SUCCESS;
 
     // Address mapping by cartridge into same variable
-	if ((status = _cartridge_mapping(self, addr, &addr)) <
-	    NESEMU_RETURN_SUCCESS) {
+	if ((status = _cartridge_mapping(self, addr, &addr)) < NESEMU_RETURN_SUCCESS) {
 		// Handle error
 		return status;
 	}
@@ -164,8 +163,7 @@ nesemu_return_t nes_vram_r8(struct nes_mem_video *self,
 	nesemu_return_t status = NESEMU_RETURN_SUCCESS;
 
     // Address mapping by cartridge into the same var
-	if ((status = _cartridge_mapping(self, addr, &addr)) <
-	    NESEMU_RETURN_SUCCESS) {
+	if ((status = _cartridge_mapping(self, addr, &addr)) < NESEMU_RETURN_SUCCESS) {
 		// Handle error
 		return status;
 	}
@@ -232,8 +230,7 @@ nesemu_return_t nes_vram_r16(struct nes_mem_video *self,
 	}
 
 	// Get next (MSB)
-	if ((err = nes_vram_r8(self, addr + 1, &msb)) !=
-	    NESEMU_RETURN_SUCCESS) {
+	if ((err = nes_vram_r8(self, addr + 1, &msb)) != NESEMU_RETURN_SUCCESS) {
 		return err;
 	}
 
@@ -258,8 +255,7 @@ nesemu_return_t nes_vram_pattern_read(struct nes_mem_video *self,
 	nesemu_return_t status = NESEMU_RETURN_SUCCESS;
 
     // Address mapping by cartridge into the same address
-	if ((status = _cartridge_mapping(self, addr, &addr)) <
-	    NESEMU_RETURN_SUCCESS) {
+	if ((status = _cartridge_mapping(self, addr, &addr)) < NESEMU_RETURN_SUCCESS) {
 		// Handle error
 		return status;
 	}
@@ -275,10 +271,11 @@ nesemu_return_t nes_vram_pattern_read(struct nes_mem_video *self,
         // For each byte, delegate operation to cartridge
         for (size_t idx = 0; idx < NESEMU_MEMORY_VRAM_PATTERN_SIZE; idx++) {
             if ((status = self->cartridge->chr_read_fn(
-                            NESEMU_CARTRIDGE_GET_MAPPER_GENERIC_REF(
-                                self->cartridge),
-                            addr + idx, pattern[idx])) <
-                    NESEMU_RETURN_SUCCESS) {
+                            NESEMU_CARTRIDGE_GET_MAPPER_GENERIC_REF(self->cartridge),
+                            addr + idx,
+                            pattern[idx])
+                ) < NESEMU_RETURN_SUCCESS)
+            {
                 return status;
             }
         }

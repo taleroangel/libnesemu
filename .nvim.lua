@@ -1,6 +1,10 @@
 -- Make parameters
 vim.opt.makeprg = "cmake --build build"
 
+local function build()
+    vim.cmd("make")
+end
+
 -- Debug `Emulator`
 local dap = require("dap")
 dap.configurations.c = {
@@ -9,14 +13,20 @@ dap.configurations.c = {
         type = "codelldb",
         request = "launch",
         cwd = "build/emulator",
-        program = "build/emulator/nesemu_linux",
+        program = function()
+            build()
+            return "build/emulator/nesemu_linux"
+        end,
         args= { "nestest.nes" }
     },
     {
-        name = "Launch nestest",
+        name = "Launch 'nestest'",
         type = "codelldb",
         request = "launch",
         cwd = "tests/resources",
-        program = "build/tests/TestNestest",
+        program = function()
+            build()
+            return "build/tests/TestNestest"
+        end
     }
 }

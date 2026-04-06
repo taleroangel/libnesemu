@@ -4,6 +4,7 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <signal.h>
 #include <unistd.h>
 
 #include <nesemu/nesemu.h>
@@ -15,6 +16,14 @@
 #include <SDL3/SDL_error.h>
 #include <SDL3/SDL_events.h>
 #include <SDL3/SDL_pixels.h>
+
+/** Flag for the main event loop */
+static volatile bool main_event_loop = true;
+
+void sigint_handler(int _)
+{
+	main_event_loop = false;
+}
 
 /**
  * Read cartridge raw data bytes from file
@@ -38,7 +47,7 @@ int main(int argc, char *argv[])
 
 		/* Get path to the cartridge */
 		char *cartridge_path = argv[1];
-		printf("Reading cartridge from: %s\n.", cartridge_path);
+		printf("Reading cartridge from: %s\n", cartridge_path);
 
 		/* Read cartridge */
 		uint8_t *cartridge_data;
@@ -95,15 +104,18 @@ int main(int argc, char *argv[])
 	/* Create the display framebuffer */
 	nes_display_t framebuffer;
 
+	printf("Press <Ctrl-C> to kill the emulator.\n");
+	signal(SIGINT, sigint_handler);
+
 	/* Initialize SDL */
 	if (!SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS)) {
-		fprintf(stderr, "Failed to initialize SDL!: %s", SDL_GetError());
+		fprintf(stderr, "Failed to initialize SDL!: %s",
+			SDL_GetError());
 		return EXIT_FAILURE;
 	}
 
 	SDL_Window *window = SDL_CreateWindow("nesemu_linux", NESEMU_WIDTH,
-					      NESEMU_HEIGHT,
-					      SDL_WINDOW_BORDERLESS);
+					      NESEMU_HEIGHT, SDL_WINDOW_OPENGL);
 	if (!window) {
 		fprintf(stderr, "Failed to create window: %s", SDL_GetError());
 		SDL_Quit();
@@ -112,7 +124,8 @@ int main(int argc, char *argv[])
 
 	SDL_Renderer *renderer = SDL_CreateRenderer(window, NULL);
 	if (!renderer) {
-		fprintf(stderr, "Unable to initialize renderer: %s", SDL_GetError());
+		fprintf(stderr, "Unable to initialize renderer: %s",
+			SDL_GetError());
 		SDL_DestroyWindow(window);
 		SDL_Quit();
 		return EXIT_FAILURE;
@@ -123,85 +136,92 @@ int main(int argc, char *argv[])
 						 SDL_PIXELFORMAT_XRGB8888,
 						 SDL_TEXTUREACCESS_STREAMING,
 						 NESEMU_WIDTH, NESEMU_HEIGHT);
-    if (!texture) {
-        fprintf(stderr, "Unable to create texture: %s", SDL_GetError());
-        SDL_DestroyWindow(window);
-        SDL_Quit();
-        return EXIT_FAILURE;
-    }
+	if (!texture) {
+		fprintf(stderr, "Unable to create texture: %s", SDL_GetError());
+		SDL_DestroyRenderer(renderer);
+		SDL_DestroyWindow(window);
+		SDL_Quit();
+		return EXIT_FAILURE;
+	}
 
-    bool running = true;
-    while(running) {
+	printf("Emulator setup completed, running.\n");
+    fflush(stdout);
 
-        /* Polling event */
-        SDL_Event evt;
-        while (SDL_PollEvent(&evt)) {
-            if (evt.type == SDL_EVENT_QUIT) {
-                running = false;
-            }
-        }
+	while (main_event_loop) {
+		/* Polling event */
+		SDL_Event evt;
+		while (SDL_PollEvent(&evt)) {
+			if (evt.type == SDL_EVENT_QUIT) {
+				main_event_loop = false;
+			}
+		}
 
-        nesemu_return_t err = NESEMU_RETURN_SUCCESS;
-        
-        // PPU must render
-        int ppu_cycles = 0;
-        err = nes_ppu_render(&ppu, &framebuffer, &mem, &vim, &ppu_cycles);
-        if (err != NESEMU_RETURN_SUCCESS) {
-            fprintf(stderr, "nesemu: PPU failed to execute");
-            running = false;
-            break;
-        }
+		nesemu_return_t err = NESEMU_RETURN_SUCCESS;
 
-        // Total CPU cycles, to catch up with PPU
-        int tcpu_cycles = 0;
+		// PPU must render
+		int ppu_cycles = 0;
+		err = nes_ppu_render(&ppu, &framebuffer, &mem, &vim, &ppu_cycles);
+		if (err != NESEMU_RETURN_SUCCESS) {
+			fprintf(stderr, "nesemu: PPU failed to execute");
+			main_event_loop = false;
+			break;
+		}
 
-        // Upload texture
-        void *dst_pixels = NULL;
-        int dst_pitch = 0;
-        if (!SDL_LockTexture(texture, NULL, &dst_pixels, &dst_pitch)) {
-            fprintf(stderr, "Failed to lock texture: %s", SDL_GetError());
-            running = false;
-            break;
-        }
 
-        const uint8_t *src = (const uint8_t *)framebuffer;
-        uint8_t *dst = (uint8_t *)dst_pixels;
+		int tcpu_cycles = 0;
 
-        const int src_pitch = NESEMU_WIDTH * sizeof(uint32_t);
+		// Upload texture
+		void *dst_pixels = NULL;
+		int dst_pitch = 0;
+		if (!SDL_LockTexture(texture, NULL, &dst_pixels, &dst_pitch)) {
+			fprintf(stderr, "Failed to lock texture: %s",
+				SDL_GetError());
+			main_event_loop = false;
+			break;
+		}
 
-        for (int y = 0; y < NESEMU_HEIGHT; ++y) {
-            memcpy(dst + y * dst_pitch,
-                    src + y * src_pitch,
-                    src_pitch);
-        }
+		const uint8_t *src = (const uint8_t *)framebuffer;
+		uint8_t *dst = (uint8_t *)dst_pixels;
 
-        SDL_UnlockTexture(texture);
+		const int src_pitch = NESEMU_WIDTH * sizeof(uint32_t);
 
-        // Render frame
-        SDL_RenderClear(renderer);
-        SDL_RenderTexture(renderer, texture, NULL, NULL);
-        SDL_RenderPresent(renderer);
+		for (int y = 0; y < NESEMU_HEIGHT; ++y) {
+			memcpy(dst + y * dst_pitch, src + y * src_pitch,
+			       src_pitch);
+		}
 
-        // Catch up with the ppu
-        while ((3 * tcpu_cycles) < ppu_cycles) {
-            // Execute next instruction
-            int cpu_cycles = 0;
-            err = nes_cpu_next(&cpu, &mem, &cpu_cycles);
-            if (err != NESEMU_RETURN_SUCCESS) {
-                fprintf(stderr, "nesemu: cpu execution error (%d)", (int)err);
-                running = false;
-                break;
-            }
-        }
-        
-        // CPU was stopped
-        if (cpu.stop) {
-            running = false;
-        }
-    }
+		SDL_UnlockTexture(texture);
 
-    SDL_DestroyWindow(window);
-    SDL_Quit();
+		// Render frame
+		SDL_RenderClear(renderer);
+		SDL_RenderTexture(renderer, texture, NULL, NULL);
+		SDL_RenderPresent(renderer);
+
+		// Catch up with the ppu
+		while ((3 * tcpu_cycles) < ppu_cycles) {
+			// Execute next instruction
+			int cpu_cycles = 0;
+			err = nes_cpu_next(&cpu, &mem, &cpu_cycles);
+			if (err != NESEMU_RETURN_SUCCESS) {
+				fprintf(stderr,
+					"nesemu: cpu execution error (%d)",
+					(int)err);
+				main_event_loop = false;
+				break;
+			}
+			tcpu_cycles += cpu_cycles;
+		}
+
+		// CPU was stopped
+		if (cpu.stop) {
+			main_event_loop = false;
+		}
+	}
+
+	SDL_DestroyTexture(texture);
+	SDL_DestroyRenderer(renderer);
+	SDL_DestroyWindow(window);
+	SDL_Quit();
 
 	return EXIT_SUCCESS;
 }
