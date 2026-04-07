@@ -17,6 +17,13 @@
 #include <SDL3/SDL_events.h>
 #include <SDL3/SDL_pixels.h>
 
+/* Linux (and maybe Windows?) will use Vulkan, macos will use Metal */
+#ifdef __APPLE__
+#define SDL_WINDOW_GRAPHICS_API (SDL_WINDOW_METAL)
+#else
+#define SDL_WINDOW_GRAPHICS_API (SDL_WINDOW_VULKAN)
+#endif
+
 /** Flag for the main event loop */
 static volatile bool main_event_loop = true;
 
@@ -114,8 +121,9 @@ int main(int argc, char *argv[])
 		return EXIT_FAILURE;
 	}
 
-	SDL_Window *window = SDL_CreateWindow("nesemu_linux", NESEMU_WIDTH,
-					      NESEMU_HEIGHT, SDL_WINDOW_OPENGL);
+	SDL_Window *window = SDL_CreateWindow(
+		"nesemu", NESEMU_WIDTH, NESEMU_HEIGHT, SDL_WINDOW_GRAPHICS_API);
+
 	if (!window) {
 		fprintf(stderr, "Failed to create window: %s", SDL_GetError());
 		SDL_Quit();
@@ -145,7 +153,7 @@ int main(int argc, char *argv[])
 	}
 
 	printf("Emulator setup completed, running.\n");
-    fflush(stdout);
+	fflush(stdout);
 
 	while (main_event_loop) {
 		/* Polling event */
@@ -160,13 +168,13 @@ int main(int argc, char *argv[])
 
 		// PPU must render
 		int ppu_cycles = 0;
-		err = nes_ppu_render(&ppu, &framebuffer, &mem, &vim, &ppu_cycles);
+		err = nes_ppu_render(&ppu, &framebuffer, &mem, &vim,
+				     &ppu_cycles);
 		if (err != NESEMU_RETURN_SUCCESS) {
 			fprintf(stderr, "nesemu: PPU failed to execute");
 			main_event_loop = false;
 			break;
 		}
-
 
 		int tcpu_cycles = 0;
 

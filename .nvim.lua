@@ -9,15 +9,15 @@ end
 local dap = require("dap")
 dap.configurations.c = {
     {
-        name = "Launch Emulator (linux) with `nestest.nes` ROM",
+        name = "Launch Emulator with `nestest.nes` ROM",
         type = "codelldb",
         request = "launch",
         cwd = "build/emulator",
         program = function()
             build()
-            return "build/emulator/nesemu_linux"
+            return "build/emulator/nesemu_exe"
         end,
-        args= { "nestest.nes" }
+        args = { "nestest.nes" }
     },
     {
         name = "Launch 'nestest'",
