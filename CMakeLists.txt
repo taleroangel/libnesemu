@@ -10,7 +10,12 @@ project(
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_C_STANDARD_REQUIRED ON)
 
-add_compile_options(-Wall -Wextra -pedantic -Wimplicit-fallthrough)
+add_compile_options(
+    -Wall
+    -Wextra
+    -pedantic
+    -Wimplicit-fallthrough
+)
 
 # Project properties
 if(NESEMU_DISABLE_SAFETY_CHECKS)
@@ -20,6 +25,26 @@ endif()
 # Project properties
 if(NESEMU_DEBUG)
     add_definitions(-DCONFIG_NESEMU_DEBUG)
+    # Add sanitizers
+    if (CMAKE_C_COMPILER_ID STREQUAL "GNU")
+        add_compile_options(
+            -fno-omit-frame-pointer
+            -fno-optimize-sibling-calls
+            -fsanitize=address,leak,undefined
+        )
+        add_link_options(
+            -fsanitize=address,leak,undefined
+        )
+    elseif (CMAKE_C_COMPILER_ID STREQUAL "Clang")
+        add_compile_options(
+            -fno-omit-frame-pointer
+            -fno-optimize-sibling-calls
+            -fsanitize=address,memory,undefined
+        )
+        add_link_options(
+            -fsanitize=address,memory,undefined
+        )
+    endif()
 endif()
 
 # Build library

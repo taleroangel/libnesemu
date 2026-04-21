@@ -1,10 +1,3 @@
--- Make parameters
-vim.opt.makeprg = "cmake --build build"
-
-local function build()
-    vim.cmd("make")
-end
-
 -- Debug `Emulator`
 local dap = require("dap")
 dap.configurations.c = {
@@ -14,7 +7,6 @@ dap.configurations.c = {
         request = "launch",
         cwd = "build/emulator",
         program = function()
-            build()
             return "build/emulator/nesemu_exe"
         end,
         args = { "nestest.nes" }
@@ -25,8 +17,12 @@ dap.configurations.c = {
         request = "launch",
         cwd = "tests/resources",
         program = function()
-            build()
             return "build/tests/TestNestest"
         end
     }
 }
+
+require("dalton").add({
+    build = "cmake --build build",
+    emulator = { "./build/emulator/nesemu_exe", "./tests/resources/nestest.nes" },
+})

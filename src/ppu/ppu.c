@@ -216,7 +216,7 @@ nesemu_return_t nes_ppu_render(struct nes_ppu *self,
 			nes_color_t bgcolor = (*self->system_palette)[bgsysindex];
 
 			// Set color in display
-			*display[(self->scanline * NESEMU_PPU_SCREEN_WIDTH) + x] = bgcolor;
+			(*display)[(self->scanline * NESEMU_PPU_SCREEN_WIDTH) + x] = bgcolor;
 		}
 	}
 	/* Idle section */

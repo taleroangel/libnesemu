@@ -273,7 +273,7 @@ nesemu_return_t nes_vram_pattern_read(struct nes_mem_video *self,
             if ((status = self->cartridge->chr_read_fn(
                             NESEMU_CARTRIDGE_GET_MAPPER_GENERIC_REF(self->cartridge),
                             addr + idx,
-                            pattern[idx])
+                            &(*pattern)[idx])
                 ) < NESEMU_RETURN_SUCCESS)
             {
                 return status;
@@ -307,7 +307,7 @@ nesemu_return_t nes_vram_palette_read(struct nes_mem_video *self,
 
     // Copy contents to target variable
     for (size_t idx = 0; idx < NESEMU_MEMORY_VRAM_PALETTE_SIZE; idx++) {
-        *palette[idx] = self->palette_ram[addr + idx];
+        (*palette)[idx] = self->palette_ram[addr + idx];
     }
 
     // Return with no errors
