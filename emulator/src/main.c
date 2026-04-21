@@ -1,5 +1,7 @@
 /* -- Standard Libraries -- */
 
+#include "nesemu/ppu/palette.h"
+#include "nesemu/ppu/ppu.h"
 #include <stddef.h>
 #include <stdint.h>
 #include <stdlib.h>
@@ -7,29 +9,21 @@
 #include <signal.h>
 #include <unistd.h>
 
+/* NES emulation library */
 #include <nesemu/nesemu.h>
 
-#include <SDL3/SDL.h>
-#include <SDL3/SDL_init.h>
-#include <SDL3/SDL_render.h>
-#include <SDL3/SDL_video.h>
-#include <SDL3/SDL_error.h>
-#include <SDL3/SDL_events.h>
-#include <SDL3/SDL_pixels.h>
+/* Other libraries */
+#include <raylib.h>
 
-/* Linux (and maybe Windows?) will use Vulkan, macos will use Metal */
-#ifdef __APPLE__
-#define SDL_WINDOW_GRAPHICS_API (SDL_WINDOW_METAL)
-#else
-#define SDL_WINDOW_GRAPHICS_API (SDL_WINDOW_VULKAN)
-#endif
+/* Screen size multiplier */
+#define SCALING_FACTOR 3
 
 /** Flag for the main event loop */
-static volatile bool main_event_loop = true;
+static volatile bool g_main_event_loop = true;
 
-void sigint_handler(int _)
+void sigint_handler(__attribute__((unused)) int _)
 {
-	main_event_loop = false;
+	g_main_event_loop = false;
 }
 
 /**
@@ -111,126 +105,77 @@ int main(int argc, char *argv[])
 	/* Create the display framebuffer */
 	nes_display_t framebuffer;
 
-	printf("Press <Ctrl-C> to kill the emulator.\n");
-	signal(SIGINT, sigint_handler);
+	/* Initialize Raylib */
+	InitWindow(NESEMU_WIDTH * SCALING_FACTOR,
+            NESEMU_HEIGHT * SCALING_FACTOR,
+            argv[1]);
 
-	/* Initialize SDL */
-	if (!SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS)) {
-		fprintf(stderr, "Failed to initialize SDL!: %s",
-			SDL_GetError());
-		return EXIT_FAILURE;
-	}
-
-	SDL_Window *window = SDL_CreateWindow(
-		"nesemu", NESEMU_WIDTH, NESEMU_HEIGHT, SDL_WINDOW_GRAPHICS_API);
-
-	if (!window) {
-		fprintf(stderr, "Failed to create window: %s", SDL_GetError());
-		SDL_Quit();
-		return EXIT_FAILURE;
-	}
-
-	SDL_Renderer *renderer = SDL_CreateRenderer(window, NULL);
-	if (!renderer) {
-		fprintf(stderr, "Unable to initialize renderer: %s",
-			SDL_GetError());
-		SDL_DestroyWindow(window);
-		SDL_Quit();
-		return EXIT_FAILURE;
-	}
-
-	// Create target texture
-	SDL_Texture *texture = SDL_CreateTexture(renderer,
-						 SDL_PIXELFORMAT_XRGB8888,
-						 SDL_TEXTUREACCESS_STREAMING,
-						 NESEMU_WIDTH, NESEMU_HEIGHT);
-	if (!texture) {
-		fprintf(stderr, "Unable to create texture: %s", SDL_GetError());
-		SDL_DestroyRenderer(renderer);
-		SDL_DestroyWindow(window);
-		SDL_Quit();
-		return EXIT_FAILURE;
-	}
+	Texture2D texture = LoadTextureFromImage((Image){
+		.data = NULL,
+		.width = NESEMU_WIDTH,
+		.height = NESEMU_HEIGHT,
+		.mipmaps = 1,
+		.format = PIXELFORMAT_UNCOMPRESSED_R8G8B8A8,
+	});
 
 	printf("Emulator setup completed, running.\n");
 	fflush(stdout);
 
-	while (main_event_loop) {
-		/* Polling event */
-		SDL_Event evt;
-		while (SDL_PollEvent(&evt)) {
-			if (evt.type == SDL_EVENT_QUIT) {
-				main_event_loop = false;
-			}
-		}
+	printf("Press <Ctrl-C> to kill the emulator.\n");
+	signal(SIGINT, sigint_handler);
 
+	/* Main event loop */
+	while (g_main_event_loop && !WindowShouldClose()) {
 		nesemu_return_t err = NESEMU_RETURN_SUCCESS;
 
-		// PPU must render
+		// Let the PPU render the frame
 		int ppu_cycles = 0;
-		err = nes_ppu_render(&ppu, &framebuffer, &mem, &vim,
-				     &ppu_cycles);
+		err = nes_ppu_render(&ppu, &framebuffer, &mem, &vim, &ppu_cycles);
 		if (err != NESEMU_RETURN_SUCCESS) {
 			fprintf(stderr, "nesemu: PPU failed to execute");
-			main_event_loop = false;
-			break;
+			break; /* Exit main loop */
 		}
 
-		int tcpu_cycles = 0;
-
-		// Upload texture
-		void *dst_pixels = NULL;
-		int dst_pitch = 0;
-		if (!SDL_LockTexture(texture, NULL, &dst_pixels, &dst_pitch)) {
-			fprintf(stderr, "Failed to lock texture: %s",
-				SDL_GetError());
-			main_event_loop = false;
-			break;
+		// Transform texture from XRGB to RGBA
+		for (size_t i = 0; i < NESEMU_PPU_BUFFER_SIZE; i++) {
+            // Byte order reversal
+            uint32_t color = framebuffer[i];
+            uint8_t r = (color >> 16) & 0xFF,
+                    g = (color >> 8) & 0xFF,
+                    b = color & 0xFF;
+			framebuffer[i] = r | (g << 8) | (b << 16) | (0xFFL << 24);
 		}
+		UpdateTexture(texture, (const void *)framebuffer);
 
-		const uint8_t *src = (const uint8_t *)framebuffer;
-		uint8_t *dst = (uint8_t *)dst_pixels;
-
-		const int src_pitch = NESEMU_WIDTH * sizeof(uint32_t);
-
-		for (int y = 0; y < NESEMU_HEIGHT; ++y) {
-			memcpy(dst + y * dst_pitch, src + y * src_pitch,
-			       src_pitch);
-		}
-
-		SDL_UnlockTexture(texture);
-
-		// Render frame
-		SDL_RenderClear(renderer);
-		SDL_RenderTexture(renderer, texture, NULL, NULL);
-		SDL_RenderPresent(renderer);
+        // Draw frame
+		BeginDrawing();
+		DrawTexturePro(texture,
+			       (Rectangle){ 0, 0, NESEMU_WIDTH, NESEMU_HEIGHT },
+			       (Rectangle){ 0, 0, GetScreenWidth(), GetScreenHeight() },
+			       (Vector2){ 0, 0 }, .0f, WHITE);
+		EndDrawing();
 
 		// Catch up with the ppu
-		while ((3 * tcpu_cycles) < ppu_cycles) {
+		int cpu_cycles = 0;
+		while ((3 * cpu_cycles) < ppu_cycles) {
 			// Execute next instruction
-			int cpu_cycles = 0;
-			err = nes_cpu_next(&cpu, &mem, &cpu_cycles);
+			int instruction_cpu_cycles = 0;
+			err = nes_cpu_next(&cpu, &mem, &instruction_cpu_cycles);
 			if (err != NESEMU_RETURN_SUCCESS) {
-				fprintf(stderr,
-					"nesemu: cpu execution error (%d)",
-					(int)err);
-				main_event_loop = false;
+				fprintf(stderr, "nesemu: cpu execution error (%d)", (int)err);
+				g_main_event_loop = false; /* Exit main event loop */
 				break;
 			}
-			tcpu_cycles += cpu_cycles;
+			cpu_cycles += instruction_cpu_cycles;
 		}
 
 		// CPU was stopped
 		if (cpu.stop) {
-			main_event_loop = false;
+			g_main_event_loop = false;
 		}
 	}
 
-	SDL_DestroyTexture(texture);
-	SDL_DestroyRenderer(renderer);
-	SDL_DestroyWindow(window);
-	SDL_Quit();
-
+	CloseWindow();
 	return EXIT_SUCCESS;
 }
 

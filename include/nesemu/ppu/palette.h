@@ -19,7 +19,7 @@ typedef uint32_t nes_color_t;
  *
  * PPU will require to pass a pointer to the palette to be used
  */
-typedef nes_color_t nes_ppu_system_palette_t[NESEMU_PPU_PALETTE_SIZE];
+typedef nes_color_t const nes_ppu_system_palette_t[NESEMU_PPU_PALETTE_SIZE];
 
 /** Standard NES palette, fill values for the array */
 #define NESEMU_PALETTE_STANDARD                                                \
